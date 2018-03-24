@@ -1,0 +1,67 @@
+<resources>
+    <string name="app_name">mcmah113ExpensesIQ</string>
+    <string name="login_activity_title">Login</string>
+    <string name="company_logo_content_description">Company Logo</string>
+    <string name="username_login_label">Username</string>
+    <string name="password_login_label">Password</string>
+    <string name="username_sign_up_label">Username *</string>
+    <string name="password_sign_up_label">Password *</string>
+    <string name="sign_up_button">Sign up</string>
+    <string name="login_button">Login</string>
+    <string name="signUp_activity_title">Sign Up</string>
+    <string name="currency_label">Currency *</string>
+    <string name="language_label">Language *</string>
+    <string name="bank_account_balance_label">Bank Account Balance</string>
+    <string name="cash_label">Cash</string>
+    <string name="confirm_password_label">Confirm Password *</string>
+    <string name="title_activity_overview">Account Overview</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="settings_overview_menu">Settings</string>
+    <string name="logout_overview_menu">Logout</string>
+    <string name="image_of_app_icon_content_description">Image of App Icon</string>
+    <string name="overview_navigation_menu">Overview</string>
+    <string name="accounts_navigation_menu">Accounts</string>
+    <string name="transactions_navigation_menu">Transactions</string>
+    <string name="reports_navigation_menu">Reports</string>
+    <string name="expense_tab_header">Expense</string>
+    <string name="income_tab_header">Income</string>
+    <string name="cash_flow_tab_header">Cash Flow</string>
+    <string name="balance_tab_header">Balance</string>
+    <string name="add_expense_label">Add Expense</string>
+    <string name="add_income_label">Add Income</string>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat" />
+
+    <string name="amount_label">$00.00</string>
+    <string name="account_icon_content_description">Account Icon</string>
+    <string name="account_type_label">ACCOUNT</string>
+    <string name="add_transaction_content_description">Add Transaction</string>
+    <string name="hide_account_image_content_description">Hide Account Image</string>
+    <string name="view_transaction_content_description">View Transaction</string>
+    <string name="view_transactions_content_description">View Transactions</string>
+    <string name="edit_account_content_description">Edit Account</string>
+    <string name="add_transaction_label">Add Transaction</string>
+    <string name="delete_account_label">Delete Account</string>
+    <string name="hide_account_label">Hide Account</string>
+    <string name="view_transactions_label">View Transactions</string>
+    <string name="make_a_transfer_label">Make a Transfer</string>
+    <string name="edit_account_label">Edit Account</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hidden_account_text">( ! )</string>
+    <string name="account_description_text">Description:</string>
+    <string name="show_hidden_accounts_text">Show Hidden Accounts?</string>
+    <string name="save_text">Save</string>
+    <string name="type_text">Type *</string>
+    <string name="account_name_text">Name *</string>
+    <string name="initial_account_balance_text">Initial Balance *</string>
+    <string name="current_account_balance_text">Current Balance *</string>
+    <string name="account_is_hidden_text">Hidden?</string>
+
+</resources>

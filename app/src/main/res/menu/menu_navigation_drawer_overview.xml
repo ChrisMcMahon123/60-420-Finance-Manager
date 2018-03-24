@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/navOverview"
+            android:icon="@color/colorAccent"
+            android:title="@string/overview_navigation_menu" />
+        <item
+            android:id="@+id/navAccounts"
+            android:icon="@color/colorAccent"
+            android:title="@string/accounts_navigation_menu" />
+        <item
+            android:id="@+id/navTransactions"
+            android:icon="@color/colorAccent"
+            android:title="@string/transactions_navigation_menu" />
+        <item
+            android:id="@+id/navReports"
+            android:icon="@color/colorAccent"
+            android:title="@string/reports_navigation_menu" />
+    </group>
+</menu>
