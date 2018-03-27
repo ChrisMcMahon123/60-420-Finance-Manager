@@ -1,49 +1,32 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.util.Currency;
-import java.util.Locale;
-
 public class SignUp extends AppCompatActivity {
+    private Toolbar toolbarCustom;
     //array holds the different languages the user can select
-    private static final String languageArray[] = {
-        Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
-        Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
-        Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
-        Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
-    };
+    private static final String languageArray[] = GlobalConstants.getLanguageArray();
 
     //array holds the currency name and its symbol
-    private static final String currencyArray[] = {
-        Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
-        Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
-        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
-        Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
-        Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
-        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
-    };
-
-    //set the index of the spinners to 0 for the first array item
-    private int languageIndex = 0;
-    private int currencyIndex = 0;
+    private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
         //set toolbar properties
-        final Toolbar toolbarCustom = findViewById(R.id.toolbarCustom);
+        toolbarCustom = findViewById(R.id.toolbarCustom);
         setSupportActionBar(toolbarCustom);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -68,29 +51,11 @@ public class SignUp extends AppCompatActivity {
 
         final Spinner spinnerLanguage = findViewById(R.id.spinnerLanguage);
         spinnerLanguage.setAdapter(arrayAdapterLanguage);
-        spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                languageIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         final ArrayAdapter<String> arrayAdapterCurrency = new ArrayAdapter<>(this, R.layout.layout_spinner, currencyArray);
 
         final Spinner spinnerCurrency = findViewById(R.id.spinnerType);
         spinnerCurrency.setAdapter(arrayAdapterCurrency);
-        spinnerCurrency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currencyIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         //set sign up button properties
         final CustomOnTouchListener onTouchListener = new CustomOnTouchListener(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
@@ -99,9 +64,9 @@ public class SignUp extends AppCompatActivity {
         buttonSignUp.setOnTouchListener(onTouchListener);//ignore this warning...
         buttonSignUp.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                String username = editTextUsername.getText().toString();
-                String password = editTextPassword.getText().toString();
-                String passwordConfirm = editTextPasswordConfirm.getText().toString();
+                final String username = editTextUsername.getText().toString();
+                final String password = editTextPassword.getText().toString();
+                final String passwordConfirm = editTextPasswordConfirm.getText().toString();
 
                 if(username.isEmpty() || password.isEmpty() || passwordConfirm.isEmpty()) {
                     //missing required form fields
@@ -115,11 +80,14 @@ public class SignUp extends AppCompatActivity {
                     }
                     else {
                         //all required form fields are filled out, check if valid numbers
-                        String language = spinnerLanguage.getItemAtPosition(languageIndex).toString();
-                        String locale = spinnerCurrency.getItemAtPosition(currencyIndex).toString();
+                        final String language = spinnerLanguage.getSelectedItem().toString();
+                        String locale = spinnerCurrency.getSelectedItem().toString();
 
-                        String bankString = editTextBankAccount.getText().toString();
-                        String cashString = editTextCash.getText().toString();
+                        //only want the code inside the brackets
+                        locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
+
+                        final String bankString = editTextBankAccount.getText().toString();
+                        final String cashString = editTextCash.getText().toString();
 
                         if(bankString.isEmpty()) {
                             if(cashString.isEmpty()) {
@@ -180,6 +148,18 @@ public class SignUp extends AppCompatActivity {
         catch(Exception exception) {
             //invalid bank account or cash account input
             Toast.makeText(this, "Invalid money inputs", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void onBackPressed() {
+        hideKeyboard(toolbarCustom);
+    }
+
+    public void hideKeyboard(View view) {
+        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if(inputManager != null) {
+            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
     }
 }

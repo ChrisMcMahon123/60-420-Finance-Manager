@@ -1,6 +1,7 @@
 package com.mcmah113.mcmah113expensesiq;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -26,8 +27,8 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
             if(account != null) {
                 final String mainInfo = account.getName() + " (" + account.getLocale() + ")";
                 final String balance = account.getSymbol() + account.getCurrentBalance();
-                final String initialBalance = "Initial: " + account.getSymbol() + account.getInitialBalance();
-                final String description = R.string.account_description_text + account.getDescription();
+                final String initialBalance = getContext().getResources().getString(R.string.initial_text) + " " + account.getSymbol() + account.getInitialBalance();
+                final String description = getContext().getResources().getString(R.string.account_description_text) + " " + account.getDescription();
 
                 final TextView textViewAccountName = row.findViewById(R.id.textViewAccountName);
                 textViewAccountName.setText(mainInfo);
@@ -45,6 +46,25 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
                 textViewAccountDescription.setText(description);
 
                 final TextView textViewHidden = row.findViewById(R.id.textViewHiddenAccount);
+
+                final TextView textViewDifference = row.findViewById(R.id.textViewAccountDifference);
+
+                double difference = account.getCurrentBalance() - account.getInitialBalance();
+
+                if(difference == 0) {
+                    textViewDifference.setText("");
+                }
+                else if(difference > 0) {
+                    //in the positive
+
+                    textViewDifference.setTextColor(getContext().getResources().getColor(R.color.colorGreen, getContext().getTheme()));
+                    textViewDifference.setText(String.format("+ %s%.2f", account.getSymbol(), difference));
+                }
+                else {
+                    //in the negative
+                    textViewDifference.setTextColor(getContext().getResources().getColor(R.color.colorRed, getContext().getTheme()));
+                    textViewDifference.setText(String.format("- %s%.2f", account.getSymbol(), difference));
+                }
 
                 if(account.getHiddenFlag()) {
                     textViewHidden.setText(R.string.hidden_account_text);

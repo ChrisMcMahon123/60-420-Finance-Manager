@@ -11,6 +11,8 @@ public class ReportsPagerAdapter extends FragmentPagerAdapter {
 
     //returns a specific fragment based on what tab is being displayed
     public Fragment getItem(int position) {
+        ReportsFragment.setPosition(position);
+
         switch (position) {
             case 0:
                 return new ReportsExpenseFragment();

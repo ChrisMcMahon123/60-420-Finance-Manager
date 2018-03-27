@@ -4,12 +4,15 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 public class ReportsFragment extends Fragment {
+    public static int listPosition = 0;
+
     public ReportsFragment() {
 
     }
@@ -31,5 +34,10 @@ public class ReportsFragment extends Fragment {
 
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(viewPager));
+    }
+
+    public static void setPosition(int position) {
+        listPosition = position;
+        Log.d("position", "" + listPosition);
     }
 }

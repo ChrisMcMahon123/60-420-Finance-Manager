@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +27,9 @@ public class Overview extends AppCompatActivity implements
                 AccountsEditFragment.OnCompleteListener,
                 OverviewFragment.OnCompleteListener,
                 DeleteDialogFragment.OnCompleteListener,
-                SettingsDialogFragment.OnCompleteListener {
+                SettingsDialogFragment.OnCompleteListener,
+                TransactionsNewFragment.OnCompleteListener,
+                TransactionsTransferDialogFragment.OnCompleteListener {
 
     private static int userId;
     private static String username;
@@ -35,7 +39,11 @@ public class Overview extends AppCompatActivity implements
     private LinearLayout linearLayoutExpense;
     private LinearLayout linearLayoutIncome;
     private FloatingActionButton floatingActionButtonMain;
+    private NavigationView navigationView;
     private DatabaseHelper databaseHelper;
+
+    private static String currentTag;
+    private static int currentAccountId;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +67,7 @@ public class Overview extends AppCompatActivity implements
         toggle.syncState();
 
         //set the navigation view for the navigation drawer and the default fragment
-        final NavigationView navigationView = findViewById(R.id.navigationView);
+        navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.navOverview);
 
@@ -67,7 +75,10 @@ public class Overview extends AppCompatActivity implements
         linearLayoutExpense = findViewById(R.id.layoutFabExpense);
         linearLayoutIncome = findViewById(R.id.layoutFabIncome);
 
+        final CustomOnTouchListener onTouchListener = new CustomOnTouchListener(getResources().getColor(R.color.colorPrimaryDark, getTheme()));
+
         floatingActionButtonMain = findViewById(R.id.floatingActionButtonMain);
+        floatingActionButtonMain.setOnTouchListener(onTouchListener);//ignore this warning...
         floatingActionButtonMain.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 toggleVisibility();
@@ -75,18 +86,22 @@ public class Overview extends AppCompatActivity implements
         });
 
         final FloatingActionButton floatingActionButtonExpense = findViewById(R.id.floatingActionButtonExpense);
+        floatingActionButtonExpense.setOnTouchListener(onTouchListener);//ignore this warning...
         floatingActionButtonExpense.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 toggleVisibility();
-                Toast.makeText(Overview.this, "Display Expense", Toast.LENGTH_SHORT).show();
+                //go to the transactions fragment
+                setFragment(new TransactionsNewFragment(), "Add Transaction", -3);
             }
         });
 
         final FloatingActionButton floatingActionButtonIncome = findViewById(R.id.floatingActionButtonIncome);
+        floatingActionButtonIncome.setOnTouchListener(onTouchListener);//ignore this warning...
         floatingActionButtonIncome.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 toggleVisibility();
-                Toast.makeText(Overview.this, "Display Income", Toast.LENGTH_SHORT).show();
+                //go to the transactions fragment
+                setFragment(new TransactionsNewFragment(), "Add Transaction", -2);
             }
         });
 
@@ -107,7 +122,12 @@ public class Overview extends AppCompatActivity implements
             else if(getSupportFragmentManager().findFragmentByTag("New Account") != null) {
                 setFragment(new OverviewFragment(), "Overview",  -1);
             }
+            else if(getSupportFragmentManager().findFragmentByTag("Make a Transfer") != null) {
+                setFragment(new AccountsFragment(), "Accounts",  -1);
+            }
         }
+
+        hideKeyboard(navigationView);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -133,7 +153,6 @@ public class Overview extends AppCompatActivity implements
                 //launch the settings dialog option
                 SettingsDialogFragment settingsDialogFragment = new SettingsDialogFragment();
                 settingsDialogFragment.show(getFragmentManager(), "Delete Dialog");
-                settingsDialogFragment.setCancelable(false);
                 return true;
             default:
                 return false;
@@ -168,20 +187,22 @@ public class Overview extends AppCompatActivity implements
     //through a bundle. Does not affect any existing fragments.
     //This is to allow more fragment launching that needs an account id
     public void setFragment(Fragment fragment, String tag, int accountId) {
-        //if(getSupportFragmentManager().findFragmentByTag(tag) == null) {
-            toolbarCustom.setTitle(tag);
+        currentTag = tag;
+        currentAccountId = accountId;
 
-            final Bundle args = new Bundle();
-            args.putInt("accountId", accountId);
-            fragment.setArguments(args);
+        toolbarCustom.setTitle(tag);
 
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.disallowAddToBackStack();
-            fragmentTransaction.replace(R.id.fragmentLocation, fragment, tag);
-            fragmentTransaction.commit();
+        final Bundle args = new Bundle();
+        args.putInt("accountId", accountId);
 
-            drawerLayout.closeDrawer(GravityCompat.START);
-        //}
+        fragment.setArguments(args);
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.disallowAddToBackStack();
+        fragmentTransaction.replace(R.id.fragmentLocation, fragment, tag);
+        fragmentTransaction.commit();
+
+        drawerLayout.closeDrawer(GravityCompat.START);
     }
 
     public void toggleVisibility() {
@@ -201,51 +222,6 @@ public class Overview extends AppCompatActivity implements
         linearLayoutExpense.setVisibility(visibility);
     }
 
-    public void onCompleteAccountDialog(Bundle callbackData) {
-        final int accountId = callbackData.getInt("accountId");
-        final String selection = callbackData.getString("selection");
-
-        //close the dialog since a Pos / Neg button wasn't used
-        AccountsFragment.getAlertDialog().dismiss();
-
-        //launch the new fragment / view
-        switch(selection) {
-            case "View Transactions":
-                break;
-            case "Make a Transfer":
-                break;
-            case "Add Transaction":
-                break;
-            case "Edit Account":
-                setFragment(new AccountsEditFragment(), selection, accountId);
-                break;
-            case "Delete Account":
-                final Bundle args = new Bundle();
-                args.putInt("accountId",accountId);
-                args.putString("accountName",databaseHelper.getAccountInfo(accountId, userId).getName());
-
-                DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
-                deleteDialogFragment.setArguments(args);
-                deleteDialogFragment.show(getFragmentManager(), "Delete Dialog");
-                break;
-            case "Hide Account":
-                databaseHelper.hideAccount(accountId, userId);
-
-                Toast.makeText(this, "Account Hidden", Toast.LENGTH_SHORT).show();
-                //refresh the fragment
-                setFragment(new AccountsFragment(), "Accounts",-1);
-                break;
-        }
-    }
-
-    public void onCompleteAccountEdit() {
-        setFragment(new AccountsFragment(), "Accounts", -1);
-    }
-
-    public void onCompleteCreateNewAccount() {
-        setFragment(new AccountsEditFragment(), "New Account", -1);
-    }
-
     public static int getUserId() {
         return userId;
     }
@@ -254,18 +230,117 @@ public class Overview extends AppCompatActivity implements
         return username;
     }
 
+    public void onCompleteAccountDialog(Bundle callbackData) {
+        final int accountId = callbackData.getInt("accountId");
+        final String selection = callbackData.getString("selection");
+
+        //close the dialog since a Pos / Neg button wasn't used
+        AccountsFragment.getAlertDialog().dismiss();
+
+        final Bundle args = new Bundle();
+        args.putInt("accountId",accountId);
+
+        //launch the new fragment / view
+        switch(selection) {
+            case "View Transactions":
+                setFragment(new TransactionsFragment(), selection, accountId);
+                break;
+            case "Make a Transfer":
+                setFragment(new TransactionsTransferFragment(), selection, accountId);
+                break;
+            case "Add Transaction":
+                setFragment(new TransactionsNewFragment(), selection, accountId);
+                break;
+            case "Edit Account":
+                setFragment(new AccountsEditFragment(), selection, accountId);
+                break;
+            case "Delete Account":
+                //confirm that the user really wants to delete this account
+                args.putString("accountName",databaseHelper.getAccountInfo(accountId, userId).getName());
+                DeleteDialogFragment deleteDialogFragment = new DeleteDialogFragment();
+                deleteDialogFragment.setArguments(args);
+                deleteDialogFragment.show(getSupportFragmentManager(), "Delete Dialog");
+                break;
+            case "Hide Account":
+                if(databaseHelper.hideAccount(accountId, userId)) {
+                    Toast.makeText(this, "Account Hidden", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(this, "Faied to hide account", Toast.LENGTH_SHORT).show();
+                }
+                //refresh accounts fragment
+                setFragment(new AccountsFragment(), "Accounts",-1);
+                break;
+        }
+    }
+
+    public void onCompleteCreateNewTransaction() {
+        //return to accounts
+        setFragment(new AccountsFragment(), "Accounts", -1);
+    }
+
+    public void onCompleteCreateNewAccount() {
+        //go to the edit accounts fragment to create a new account
+        setFragment(new AccountsEditFragment(), "New Account", -1);
+    }
+
+    public void onCompleteAccountEdit() {
+        //return to accounts
+        setFragment(new AccountsFragment(), "Accounts", -1);
+    }
+
     public void onCompleteDeleteAccount(Bundle callbackData) {
         if(callbackData.getString("response").equals("Yes")) {
-            databaseHelper.deleteAccount(callbackData.getInt("accountId"), userId);
-
-            Toast.makeText(this, "Account Deleted", Toast.LENGTH_SHORT).show();
-            //refresh the fragment
+            if(databaseHelper.deleteAccount(callbackData.getInt("accountId"), userId)) {
+                Toast.makeText(this, "Account Deleted", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(this, "Failed to delete account", Toast.LENGTH_SHORT).show();
+            }
             setFragment(new AccountsFragment(), "Accounts",-1);
         }
     }
 
-    @Override
+    //reload the current fragment that is being displayed
     public void onCompleteUserSettings() {
-        setFragment(new OverviewFragment(), "Overview",-1);
+        switch(currentTag) {
+            case "Overview":
+                setFragment(new OverviewFragment(), currentTag, currentAccountId);
+                break;
+            case "Accounts":
+                setFragment(new AccountsFragment(), currentTag, currentAccountId);
+                break;
+            case "Edit Account":
+            case "New Account":
+                setFragment(new AccountsEditFragment(), currentTag, currentAccountId);
+                break;
+            case "Transactions":
+                setFragment(new TransactionsFragment(), currentTag, currentAccountId);
+                break;
+            case "Add Transaction":
+                setFragment(new TransactionsNewFragment(), currentTag, currentAccountId);
+                break;
+            case "Make a Transfer":
+                setFragment(new TransactionsTransferFragment(), currentTag, currentAccountId);
+                break;
+            case "Reports":
+                setFragment(new ReportsFragment(), currentTag, currentAccountId);
+                break;
+            default:
+                setFragment(null, currentTag, currentAccountId);
+        }
+
+    }
+
+    public void onCompleteTransferFunds() {
+        setFragment(new AccountsFragment(), currentTag, currentAccountId);
+    }
+
+    public void hideKeyboard(View view) {
+        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if(inputManager != null) {
+            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
     }
 }

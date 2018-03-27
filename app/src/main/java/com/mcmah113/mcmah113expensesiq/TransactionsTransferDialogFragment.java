@@ -1,108 +1,119 @@
 package com.mcmah113.mcmah113expensesiq;
 
-import android.content.Context;
-import android.net.Uri;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.support.v4.app.DialogFragment;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link TransactionsTransferDialogFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link TransactionsTransferDialogFragment#newInstance} factory method to
- * create an instance of this fragment.
- *
- */
-public class TransactionsTransferDialogFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    private OnFragmentInteractionListener mListener;
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment TransactionsTransferDialogFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static TransactionsTransferDialogFragment newInstance(String param1, String param2) {
-        TransactionsTransferDialogFragment fragment = new TransactionsTransferDialogFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+public class TransactionsTransferDialogFragment extends DialogFragment {
+    public interface OnCompleteListener {
+        void onCompleteTransferFunds();
     }
+
     public TransactionsTransferDialogFragment() {
-        // Required empty public constructor
+
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    @NonNull
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        final DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
+
+        final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
+
+        //get account information
+        final int userId = Overview.getUserId();
+        final int accountFromId = getArguments().getInt("accountFromId");
+        final int accountToId = getArguments().getInt("accountToId");
+        final Account accountFrom = databaseHelper.getAccountInfo(accountFromId, userId);
+        final Account accountTo = databaseHelper.getAccountInfo(accountToId, userId);
+
+        //determine the amounts based on the exchange rate
+        final double amount = getArguments().getDouble("amount");
+        final double exchangeRate = getArguments().getDouble("exchangeRate");
+        final double exchangeAmount = amount / exchangeRate;
+
+        final double accountFromResult = accountFrom.getCurrentBalance() - amount;
+        final double accountsToResult = accountTo.getCurrentBalance() + exchangeAmount;
+
+        //getting the layout from the fragment
+        final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        final LinearLayout view = (LinearLayout) layoutInflater.inflate(R.layout.fragment_transactions_transfer_dialog, null);
+
+        //exchange overview
+        final String amountBeforeString = String.format(accountFrom.getSymbol() + "%.2f", amount);
+        final TextView textViewBeforeAmount = view.findViewById(R.id.textViewTransferAmountBefore);
+        textViewBeforeAmount.setText(amountBeforeString);
+
+        final String amountAfterString = String.format(accountTo.getSymbol() + "%.2f", exchangeAmount);
+        final TextView textViewAfterAmount = view.findViewById(R.id.textViewTransferAmountAfter);
+        textViewAfterAmount.setText(amountAfterString);
+
+        final TextView textViewFromLocale = view.findViewById(R.id.textViewFromLocale);
+        textViewFromLocale.setText(accountFrom.getLocale());
+
+        final TextView textViewToLocale = view.findViewById(R.id.textViewToLocale);
+        textViewToLocale.setText(accountTo.getLocale());
+
+        //accountFrom
+        final TextView textViewAccountFromName = view.findViewById(R.id.textViewAccountFromName);
+        textViewAccountFromName.setText(accountFrom.getName()  + " (" + accountFrom.getLocale() + ")");
+
+        final TextView textViewBeforeAccountFrom = view.findViewById(R.id.textViewBeforeAccountFrom);
+        textViewBeforeAccountFrom.setText(String.format(accountFrom.getSymbol() + "%.2f", accountFrom.getCurrentBalance()));
+
+        final TextView textViewAfterAccountFrom = view.findViewById(R.id.textViewAfterAccountFrom);
+        textViewAfterAccountFrom.setText(String.format(accountFrom.getSymbol() + "%.2f", accountFromResult));
+
+        //accountTo
+        final TextView textViewAccountNameTo = view.findViewById(R.id.textViewAccountNameTo);
+        textViewAccountNameTo.setText(accountTo.getName() + " (" + accountTo.getLocale() + ")");
+
+        final TextView textViewBeforeAccountTo = view.findViewById(R.id.textViewBeforeAccountTo);
+        textViewBeforeAccountTo.setText(String.format(accountTo.getSymbol() + "%.2f", accountTo.getCurrentBalance()));
+
+        final TextView textViewAfterAccountTo = view.findViewById(R.id.textViewAfterAccountTo);
+        textViewAfterAccountTo.setText(String.format(accountTo.getSymbol() + "%.2f", accountsToResult));
+
+        final AlertDialog.Builder transferFundsDialog = new AlertDialog.Builder(getActivity());
+        transferFundsDialog.setView(view);
+        transferFundsDialog.setTitle("Transfer Funds");
+        transferFundsDialog.setMessage("Are you sure?");
+        transferFundsDialog.setPositiveButton("Transfer", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            //Apply the changes to the database
+            accountFrom.setCurrentBalance(accountFromResult);
+            accountTo.setCurrentBalance(accountsToResult);
+            databaseHelper.updateAccount(userId, accountFrom);
+            databaseHelper.updateAccount(userId, accountTo);
+
+            //record the transaction in the table
+
+
+
+            Toast.makeText(getContext(), "Successfully transferred the funds", Toast.LENGTH_SHORT).show();
+
+            onCompleteListener.onCompleteTransferFunds();
+            }
+        });
+        transferFundsDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            onCompleteListener.onCompleteTransferFunds();
+            }
+        });
+
+        return transferFundsDialog.create();
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_transactions_transfer_dialog, container, false);
-    }
+    public void onStart() {
+        super.onStart();
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary, getContext().getTheme()));
+        ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary, getContext().getTheme()));
     }
 }

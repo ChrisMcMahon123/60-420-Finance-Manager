@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class Login extends AppCompatActivity {
+    private Toolbar toolbarCustom;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
@@ -20,7 +22,7 @@ public class Login extends AppCompatActivity {
         final DatabaseHelper databaseHelper = new DatabaseHelper(this);
 
         //set toolbar properties
-        final Toolbar toolbarCustom = findViewById(R.id.toolbarCustom);
+        toolbarCustom = findViewById(R.id.toolbarCustom);
         setSupportActionBar(toolbarCustom);
 
         //set username / login editText properties
@@ -77,6 +79,10 @@ public class Login extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    public void onBackPressed() {
+        hideKeyboard(toolbarCustom);
     }
 
     public void hideKeyboard(View view) {

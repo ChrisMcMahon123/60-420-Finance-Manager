@@ -2,10 +2,10 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,25 +13,11 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.util.Currency;
-import java.util.Locale;
-
 public class AccountsEditFragment extends Fragment {
     //array holds the currency name and its symbol
-    private static final String currencyArray[] = {
-        Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
-        Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
-        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
-        Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
-        Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
-        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
-    };
+    private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
 
-    private static final String typesArray[] = {"Bank", "Cash"};
-
-    //set the index of the spinners to 0 for the first array item
-    private int typeIndex = 0;
-    private int currencyIndex = 0;
+    private static final String typesArray[] = GlobalConstants.getTypesArray();
 
     private Account account;
 
@@ -65,29 +51,11 @@ public class AccountsEditFragment extends Fragment {
 
         final Spinner spinnerType = view.findViewById(R.id.spinnerType);
         spinnerType.setAdapter(arrayAdapterType);
-        spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                typeIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         final ArrayAdapter<String> arrayAdapterCurrency = new ArrayAdapter<>(getContext(), R.layout.layout_spinner, currencyArray);
 
         final Spinner spinnerCurrency = view.findViewById(R.id.spinnerCurrency);
         spinnerCurrency.setAdapter(arrayAdapterCurrency);
-        spinnerCurrency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currencyIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         if(accountId > 0) {
             //editing an already existing account
@@ -102,7 +70,6 @@ public class AccountsEditFragment extends Fragment {
             for(int i = 0; i < typesArray.length; i ++) {
                 if(account.getType().equals(typesArray[i])) {
                     spinnerType.setSelection(i);
-                    typeIndex = i;
                     break;
                 }
             }
@@ -111,7 +78,6 @@ public class AccountsEditFragment extends Fragment {
             for(int i = 0; i < currencyArray.length; i ++) {
                 if(currencyArray[i].contains(account.getLocale())) {
                     spinnerCurrency.setSelection(i);
-                    currencyIndex = i;
                     break;
                 }
             }
@@ -130,8 +96,11 @@ public class AccountsEditFragment extends Fragment {
                 final String initialBalanceString = editTextInitialBalance.getText().toString();
                 final String currentBalanceString = editTextCurrentBalance.getText().toString();
                 final String description = editTextDescription.getText().toString();
-                final String type = spinnerType.getItemAtPosition(typeIndex).toString();
-                final String locale = spinnerCurrency.getItemAtPosition(currencyIndex).toString();
+                final String type = spinnerType.getSelectedItem().toString();
+                String locale = spinnerCurrency.getSelectedItem().toString();
+
+                //only want the code inside the brackets
+                locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
                 boolean hiddenFlag;
 
@@ -142,16 +111,16 @@ public class AccountsEditFragment extends Fragment {
                     hiddenFlag = false;
                 }
 
-                try {
-                    //check to see if valid numbers
-                    double initialBalance = Double.parseDouble(initialBalanceString);
-                    double currentBalance = Double.parseDouble(currentBalanceString);
+                if(name.isEmpty() || initialBalanceString.isEmpty() || currentBalanceString.isEmpty()) {
+                    Toast.makeText(getContext(), "(*) Fields are required", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    try {
+                        //check to see if valid numbers
+                        double initialBalance = Double.parseDouble(initialBalanceString);
+                        double currentBalance = Double.parseDouble(currentBalanceString);
 
-                    if(initialBalance >= 0 && currentBalance >= 0) {
-                        if(name.isEmpty()) {
-                            Toast.makeText(getContext(), "(*) Fields are required", Toast.LENGTH_SHORT).show();
-                        }
-                        else {
+                        if(initialBalance >= 0 && currentBalance >= 0) {
                             if(accountId > 0) {
                                 //save changes to existing account
                                 account.setName(name);
@@ -162,17 +131,21 @@ public class AccountsEditFragment extends Fragment {
                                 account.setDescription(description);
                                 account.setHiddenFlag(hiddenFlag);
 
-                                if (databaseHelper.updateAccount(userId, account)) {
+                                Log.d("Description", description);
+
+                                if(databaseHelper.updateAccount(userId, account)) {
                                     Toast.makeText(getContext(), "Saved account changes", Toast.LENGTH_SHORT).show();
-                                } else {
+                                }
+                                else {
                                     Toast.makeText(getContext(), "Failed to save account changes", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             else {
                                 //create a new account
-                                if (databaseHelper.createAccount(userId, name, type, locale, initialBalance, description, hiddenFlag)) {
+                                if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, hiddenFlag)) {
                                     Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
-                                } else {
+                                }
+                                else {
                                     Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -181,14 +154,14 @@ public class AccountsEditFragment extends Fragment {
                             final AccountsEditFragment.OnCompleteListener onCompleteListener = (AccountsEditFragment.OnCompleteListener) getActivity();
                             onCompleteListener.onCompleteAccountEdit();
                         }
+                        else {
+                                Toast.makeText(getContext(), "Invalid money inputs", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    else {
+                    catch(Exception exception) {
+                        //invalid bank account or cash account input
                         Toast.makeText(getContext(), "Invalid money inputs", Toast.LENGTH_SHORT).show();
                     }
-                }
-                catch(Exception exception) {
-                    //invalid bank account or cash account input
-                    Toast.makeText(getContext(), "Invalid money inputs", Toast.LENGTH_SHORT).show();
                 }
             }
         });

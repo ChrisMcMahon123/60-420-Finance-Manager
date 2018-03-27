@@ -19,5 +19,7 @@ public class TransactionsFragment extends Fragment {
     public void onViewCreated(View view, Bundle bundle) {
         final int userId = Overview.getUserId();
         final String username = Overview.getUsername();
+
+        //show transaction histories for each account
     }
 }

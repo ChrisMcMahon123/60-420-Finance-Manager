@@ -1,6 +1,5 @@
 package com.mcmah113.mcmah113expensesiq;
 
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -8,43 +7,21 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.util.Currency;
-import java.util.Locale;
-
 public class SettingsDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
         void onCompleteUserSettings();
     }
 
-
-    private static final String languageArray[] = {
-        Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
-        Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
-        Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
-        Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
-    };
+    private static final String languageArray[] = GlobalConstants.getLanguageArray();
 
     //array holds the currency name and its symbol
-    private static final String currencyArray[] = {
-        Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
-        Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
-        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
-        Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
-        Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
-        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
-    };
-
-    //set the index of the spinners to 0 for the first array item
-    private int languageIndex = 0;
-    private int currencyIndex = 0;
+    private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
 
     public SettingsDialogFragment() {
 
@@ -73,21 +50,11 @@ public class SettingsDialogFragment extends DialogFragment {
 
         final Spinner spinnerLanguage = view.findViewById(R.id.spinnerLanguage);
         spinnerLanguage.setAdapter(arrayAdapterLanguage);
-        spinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                languageIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         //set default selected based on user settings
         for(int i = 0; i < languageArray.length; i ++) {
             if(userData[0].equals(languageArray[i])) {
                 spinnerLanguage.setSelection(i);
-                languageIndex = i;
                 break;
             }
         }
@@ -96,21 +63,11 @@ public class SettingsDialogFragment extends DialogFragment {
 
         final Spinner spinnerCurrency = view.findViewById(R.id.spinnerCurrency);
         spinnerCurrency.setAdapter(arrayAdapterCurrency);
-        spinnerCurrency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currencyIndex = position;
-            }
-
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
 
         //set default selected based on user settings
         for(int i = 0; i < currencyArray.length; i ++) {
             if(userData[1].equals(currencyArray[i])) {
                 spinnerCurrency.setSelection(i);
-                currencyIndex = i;
                 break;
             }
         }
@@ -119,8 +76,11 @@ public class SettingsDialogFragment extends DialogFragment {
         settingsDialog.setTitle("User Settings");
         settingsDialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                final String language = spinnerLanguage.getItemAtPosition(languageIndex).toString();
-                final String locale = spinnerCurrency.getItemAtPosition(currencyIndex).toString();
+                final String language = spinnerLanguage.getSelectedItem().toString();
+                String locale = spinnerCurrency.getSelectedItem().toString();
+
+                //only want the code inside the brackets
+                locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
                 if(databaseHelper.setUserSettings(Overview.getUserId(), language, locale)) {
                     Toast.makeText(getContext(), "User Settings Updated", Toast.LENGTH_SHORT).show();

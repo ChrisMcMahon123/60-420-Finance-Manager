@@ -6,15 +6,8 @@
     android:orientation="vertical"
     tools:context="com.mcmah113.mcmah113expensesiq.OverviewFragment">
 
-    <TextView
-        android:id="@+id/textView"
+    <ListView
+        android:id="@+id/listviewIncome"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
-    <ImageView
-        android:id="@+id/imageView6"
-        android:layout_width="match_parent"
-        android:layout_height="1500dp"
-        android:src="@android:color/holo_purple" />
+        android:layout_height="match_parent" />
 </LinearLayout>

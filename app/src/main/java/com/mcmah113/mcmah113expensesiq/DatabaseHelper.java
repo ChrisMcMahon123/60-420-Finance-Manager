@@ -14,33 +14,46 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 1111;
+    private static final int DATABASE_VERSION = 1324;
 
     //table names
     private static final String TABLE_USERS = "Users";
     private static final String TABLE_ACCOUNTS = "Accounts";
+    private static final String TABLE_TRANSACTIONS = "Transactions";
 
     //tables columns
     private static final String COLUMNS_USERS[] = {
-                                                "userId",
-                                                "username",
-                                                "password",
-                                                "language",
-                                                "locale"
-                                            };
+        "user_id",
+        "username",
+        "password",
+        "language",
+        "locale"
+    };
 
     private static final String COLUMNS_ACCOUNTS[] = {
-                                                    "accountId",
-                                                    "userId",
-                                                    "name",
-                                                    "type",
-                                                    "locale",
-                                                    "starting_balance",
-                                                    "current_balance",
-                                                    "description",
-                                                    "hidden"
-                                                };
+        "account_id",
+        "user_id",
+        "name",
+        "type",
+        "locale",
+        "starting_balance",
+        "current_balance",
+        "description",
+        "hidden_flag"
+    };
 
+    private static final String COLUMNS_TRANSACTIONS[] = {
+        "transaction_id",
+        "user_id",
+        "account_from_id",
+        "account_to_Id",
+        "transaction_type",
+        "locale",
+        "amount",
+        "date"
+    };
+
+    //determines either to query for hidden accounts
     private static boolean displayHiddenFlag = false;
 
     DatabaseHelper(Context context) {
@@ -74,18 +87,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "REFERENCES " + TABLE_USERS + "(" + COLUMNS_USERS[0] + ")\n" +
             ");";
 
+        String createTransactionsTable =
+            "CREATE TABLE " + TABLE_TRANSACTIONS + " (\n" +
+                COLUMNS_TRANSACTIONS[0] + " INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                COLUMNS_TRANSACTIONS[1] + " INTEGER,\n" +
+                COLUMNS_TRANSACTIONS[2] + " INTEGER,\n" +
+                COLUMNS_TRANSACTIONS[3] + " INTEGER,\n" +
+                COLUMNS_TRANSACTIONS[4] + " TEXT,\n" +
+                COLUMNS_TRANSACTIONS[5] + " TEXT,\n" +
+                COLUMNS_TRANSACTIONS[6] + " REAL,\n" +
+                COLUMNS_TRANSACTIONS[7] + " TEXT, \n" +
+                "FOREIGN KEY(" + COLUMNS_TRANSACTIONS[1] + ") " +
+                "REFERENCES " + TABLE_USERS + "(" + COLUMNS_USERS[0] + ")\n" +
+            ");";
+
         try {
             database.execSQL(createUsersTable);
             database.execSQL(createAccountsTable);
+            database.execSQL(createTransactionsTable);
 
             Log.d("Users SQL Query", createUsersTable);
             Log.d("Accounts SQL Query", createAccountsTable);
+            Log.d("Transactions SQL Query", createTransactionsTable);
         }
         catch(Exception exception){
             //failed to create the tables
             Log.d("onCreate()", "Failed to create the database tables");
             Log.d("Users SQL Query", createUsersTable);
             Log.d("Accounts SQL Query", createAccountsTable);
+            Log.d("Transactions SQL Query", createTransactionsTable);
             exception.printStackTrace();
         }
     }
@@ -94,8 +124,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         //delete the tables when the database gets updated
         String dropTableUsers = "DROP TABLE IF EXISTS "+ TABLE_USERS;
         String dropTableAccounts = "DROP TABLE IF EXISTS " + TABLE_ACCOUNTS;
+        String dropTableTransactions = "DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS;
         database.execSQL(dropTableUsers);
         database.execSQL(dropTableAccounts);
+        database.execSQL(dropTableTransactions);
 
         this.onCreate(database);
     }
@@ -148,6 +180,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             else {
                 //valid new username, make user account
+
                 SQLiteDatabase database = this.getWritableDatabase();
 
                 ContentValues VALUES = new ContentValues();
@@ -162,8 +195,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 int userId = userLogin(username, password);//will close the database connection
 
                 //make the users accounts (2)
-                boolean bankFlag = createAccount(userId, "Bank","Bank",locale,bankBalance,"", false);
-                boolean cashFlag = createAccount(userId, "Cash","Cash",locale,cashBalance,"", false);
+                boolean bankFlag = createAccount(userId, "Bank","Bank",locale,bankBalance,bankBalance," ", false);
+                boolean cashFlag = createAccount(userId, "Cash","Cash",locale,cashBalance,cashBalance," ", false);
 
                 if(bankFlag && cashFlag) {
                     return true;
@@ -234,12 +267,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.moveToFirst();
 
         //only need language and locale for now, if time, allow username and password change
-        String userData[] = new String[2];
+        String userData[] = new String[3];
 
+        //userId, username, password, language, locale, adding in symbol for ease of use
         //userData[1] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[1]));
         //userData[2] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[2]));
         userData[0] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[3]));
         userData[1] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[4]));
+        userData[2] = getLocaleCurrencySymbol(userData[1]);
 
         cursor.close();
         database.close();
@@ -248,18 +283,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     //new accounts initial balance = current balance
-    boolean createAccount(int userId, String name, String type, String locale, double balance, String description, boolean hidden) {
+    boolean createAccount(int userId, String name, String type, String locale, double initialBalance, double currentBalance, String description, boolean hidden) {
         try {
             SQLiteDatabase database = this.getWritableDatabase();
             ContentValues VALUES = new ContentValues();
-
             VALUES.put(COLUMNS_ACCOUNTS[1], userId);
             VALUES.put(COLUMNS_ACCOUNTS[2], name);
             VALUES.put(COLUMNS_ACCOUNTS[3], type);
             VALUES.put(COLUMNS_ACCOUNTS[4], locale);
-            VALUES.put(COLUMNS_ACCOUNTS[5], balance);
-            VALUES.put(COLUMNS_ACCOUNTS[6], balance);
+            VALUES.put(COLUMNS_ACCOUNTS[5], initialBalance);
+            VALUES.put(COLUMNS_ACCOUNTS[6], currentBalance);
             VALUES.put(COLUMNS_ACCOUNTS[7], description);
+
+            Log.d("description", description);
 
             int hiddenValue;
 
@@ -328,7 +364,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 //only want the value inside the brackets (locale) not the country name
                 locale = cursor.getString(cursor.getColumnIndex(COLUMNS_SELECTED[4]));
-                locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
                 symbol = getLocaleCurrencySymbol(locale);
 
@@ -340,7 +375,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 currentBalance = Double.parseDouble(String.format("%.2f", currentBalance));
 
                 description = cursor.getString(cursor.getColumnIndex(COLUMNS_SELECTED[7]));
-
 
                 if(cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[8])) == 0) {
                     //account is not hidden
@@ -396,7 +430,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             //only want the value inside the brackets (locale) not the country name
             String locale = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[4]));
-            locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
             final String symbol = getLocaleCurrencySymbol(locale);
 
@@ -446,6 +479,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         VALUES.put(COLUMNS_ACCOUNTS[7], account.getDescription());
         VALUES.put(COLUMNS_ACCOUNTS[8], account.getHiddenFlag());
 
+        Log.d("description", account.getDescription());
+
         database.update(TABLE_ACCOUNTS, VALUES, COLUMNS_ACCOUNTS[0] + " = ? AND " + COLUMNS_ACCOUNTS[1] + " = ?", ARGUMENTS);
         database.close();
 
@@ -482,6 +517,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
+    //transactions doesn't care about the accountId,
+    //because all account are used by default
+    //need to join on accounts to see if the account is hidden
+    //don't show transactions for hidden accounts
+    boolean createNewTransaction(Transaction transaction) {
+        return false;
+    }
+
+    Transaction[] getAllTransactions(int userId, int accountId) {
+        return null;
+    }
+
+    Transaction[] getTransactionsSpecific(int userId, String startDay, String endDay, String incomeExpense, String type) {
+        return null;
+    }
+
+
     private String getLocaleCurrencySymbol(String locale) {
         String symbol = Currency.getInstance(locale).getSymbol();
 
@@ -489,11 +541,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return stringTokenizer.nextToken();
     }
 
-    public static boolean getDisplayHiddenFlag() {
+    static boolean getDisplayHiddenFlag() {
         return displayHiddenFlag;
     }
 
-    public static void setDisplayHiddenFlag(boolean flag) {
+    static void setDisplayHiddenFlag(boolean flag) {
         displayHiddenFlag = flag;
     }
 }

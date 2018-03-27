@@ -5,15 +5,8 @@
     android:orientation="vertical"
     tools:context="com.mcmah113.mcmah113expensesiq.ReportsBalanceFragment">
 
-    <TextView
-        android:id="@+id/textView"
+    <ListView
+        android:id="@+id/listviewExpense"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="match_parent"
-        android:layout_height="1500dp"
-        android:src="@android:color/holo_blue_dark" />
+        android:layout_height="match_parent" />
 </LinearLayout>

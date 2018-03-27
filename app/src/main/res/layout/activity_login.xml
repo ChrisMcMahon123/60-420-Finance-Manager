@@ -57,7 +57,8 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/username_sign_up_label"
                 android:ems="10"
-                android:inputType="textPersonName"
+                android:inputType="text"
+                android:singleLine="true"
                 android:theme="@style/CustomEditTextTheme" />
 
             <Space
@@ -79,6 +80,7 @@
                 android:contentDescription="@string/password_sign_up_label"
                 android:ems="10"
                 android:inputType="textPassword"
+                android:singleLine="true"
                 android:theme="@style/CustomEditTextTheme"
                 tools:layout_editor_absoluteX="0dp"
                 tools:layout_editor_absoluteY="290dp" />

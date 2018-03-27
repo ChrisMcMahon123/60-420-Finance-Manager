@@ -20,7 +20,6 @@ public class CustomOnTouchListener implements View.OnTouchListener{
             case MotionEvent.ACTION_UP:
                 view.getBackground().clearColorFilter();
                 view.invalidate();
-                view.performClick();
             break;
         }
         return false;
