@@ -19,7 +19,7 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
     public @NonNull View getView(int position, View row, @Nullable ViewGroup parent) {
         if(row == null) {
             //will contain info about that specific account
-            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+            final LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             row = layoutInflater.inflate(R.layout.layout_listview_account_item, null);
 
             final Account account = getItem(position);
@@ -58,12 +58,12 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
                     //in the positive
 
                     textViewDifference.setTextColor(getContext().getResources().getColor(R.color.colorGreen, getContext().getTheme()));
-                    textViewDifference.setText(String.format("+ %s%.2f", account.getSymbol(), difference));
+                    textViewDifference.setText(String.format(account.getSymbol() +"%.2f", difference));
                 }
                 else {
                     //in the negative
                     textViewDifference.setTextColor(getContext().getResources().getColor(R.color.colorRed, getContext().getTheme()));
-                    textViewDifference.setText(String.format("- %s%.2f", account.getSymbol(), difference));
+                    textViewDifference.setText(String.format(account.getSymbol() + "%.2f", (-1 * difference)));
                 }
 
                 if(account.getHiddenFlag()) {

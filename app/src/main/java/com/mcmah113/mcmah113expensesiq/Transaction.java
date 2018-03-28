@@ -1,64 +1,62 @@
 package com.mcmah113.mcmah113expensesiq;
 
-public class Transaction {
-    private int transactionId;
-    private int userId;
+import java.util.Currency;
+import java.util.StringTokenizer;
+
+class Transaction {
     private int accountFromId;
     private int accountToId;
     private String type;
     private double amount;
+    private String locale;
     private String symbol;
     private String date;
+    private String note;
 
-    Transaction(int transactionId, int userId, int accountFromId,
-                int accountToId, String type, double amount,
-                String symbol, String date) {
+    Transaction(int accountFromId, int accountToId, String type,String locale, String symbol,
+                double amount, String date, String note) {
 
-        this.transactionId = transactionId;
-        this.userId = userId;
         this.accountFromId = accountFromId;
         this.accountToId = accountToId;
         this.type = type;
-        this.amount = amount;
+        this.locale = locale;
         this.symbol = symbol;
+        this.amount = amount;
         this.date = date;
+        this.note = note;
     }
 
-    public int getTransactionId() {
-        return transactionId;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public int getAccountFromId() {
+    int getAccountFromId() {
         return accountFromId;
     }
 
-    public int getAccountToId() {
+    int getAccountToId() {
         return accountToId;
     }
 
-    public String getType() {
+    String getType() {
         return type;
     }
 
-    public double getAmount() {
-        return amount;
+    String getLocale() {
+        return locale;
     }
 
-    public String getSymbol() {
+    String getSymbol() {
         return symbol;
     }
 
-    public String getDate() {
+    double getAmount() {
+        return amount;
+    }
+
+    String getDate() {
         return date;
     }
 
-    //no setters as the transactions should be read only
-    //no editing allowed
+    String getNote() {
+        return note;
+    }
 
-    //final Date currentTime = Calendar.getInstance().getTime();
-    //refreshDate = "Refreshed on " + new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+    //mo editing of the transactions allowed, read only
 }

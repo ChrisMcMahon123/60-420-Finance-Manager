@@ -13,6 +13,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 public class AccountsEditFragment extends Fragment {
     //array holds the currency name and its symbol
     private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
@@ -120,43 +124,67 @@ public class AccountsEditFragment extends Fragment {
                         double initialBalance = Double.parseDouble(initialBalanceString);
                         double currentBalance = Double.parseDouble(currentBalanceString);
 
-                        if(initialBalance >= 0 && currentBalance >= 0) {
-                            if(accountId > 0) {
-                                //save changes to existing account
-                                account.setName(name);
-                                account.setType(type);
-                                account.setLocale(locale);
-                                account.setInitialBalance(initialBalance);
-                                account.setCurrentBalance(currentBalance);
-                                account.setDescription(description);
-                                account.setHiddenFlag(hiddenFlag);
+                        if(accountId > 0) {
+                            //check for account changes
+                            boolean editFlag = false;
+                            String note = "";
 
-                                Log.d("Description", description);
+                            if(currentBalance != account.getCurrentBalance()) {
+                                editFlag = true;
+                                note += "Current balance changed \n";
+                            }
+                            if(initialBalance != account.getInitialBalance()) {
+                                editFlag = true;
+                                note += "Initial balance changed \n";
+                            }
+                            if(!locale.equals(account.getLocale())) {
+                                editFlag = true;
+                                note += "Account locale changed \n";
+                            }
+                            if(!type.equals(account.getType())) {
+                                editFlag = true;
+                                note += "Account type changed \n";
+                            }
 
-                                if(databaseHelper.updateAccount(userId, account)) {
-                                    Toast.makeText(getContext(), "Saved account changes", Toast.LENGTH_SHORT).show();
+                            //save changes to existing account
+                            account.setName(name);
+                            account.setType(type);
+                            account.setLocale(locale);
+                            account.setInitialBalance(initialBalance);
+                            account.setCurrentBalance(currentBalance);
+                            account.setDescription(description);
+                            account.setHiddenFlag(hiddenFlag);
+
+                            if(databaseHelper.updateAccount(userId, account)) {
+                                //record the transaction in the table
+                                if(editFlag) {
+                                    final Date currentTime = Calendar.getInstance().getTime();
+                                    String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+
+                                    Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), currentBalance, date, note);
+
+                                    databaseHelper.createNewTransaction(transaction, userId);
                                 }
-                                else {
-                                    Toast.makeText(getContext(), "Failed to save account changes", Toast.LENGTH_SHORT).show();
-                                }
+
+                                Toast.makeText(getContext(), "Saved account changes", Toast.LENGTH_SHORT).show();
                             }
                             else {
-                                //create a new account
-                                if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, hiddenFlag)) {
-                                    Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
-                                }
-                                else {
-                                    Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
-                                }
+                                Toast.makeText(getContext(), "Failed to save account changes", Toast.LENGTH_SHORT).show();
                             }
-
-                            //return to the main activity which will redirect to Accounts fragment
-                            final AccountsEditFragment.OnCompleteListener onCompleteListener = (AccountsEditFragment.OnCompleteListener) getActivity();
-                            onCompleteListener.onCompleteAccountEdit();
                         }
                         else {
-                                Toast.makeText(getContext(), "Invalid money inputs", Toast.LENGTH_SHORT).show();
+                            //create a new account
+                            if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, hiddenFlag)) {
+                                Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
+                            }
+                            else {
+                                Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
+                            }
                         }
+
+                        //return to the main activity which will redirect to Accounts fragment
+                        final AccountsEditFragment.OnCompleteListener onCompleteListener = (AccountsEditFragment.OnCompleteListener) getActivity();
+                        onCompleteListener.onCompleteAccountEdit();
                     }
                     catch(Exception exception) {
                         //invalid bank account or cash account input

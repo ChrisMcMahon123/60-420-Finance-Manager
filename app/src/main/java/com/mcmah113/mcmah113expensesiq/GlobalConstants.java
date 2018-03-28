@@ -31,42 +31,49 @@ class GlobalConstants {
     };
 
     private static final String currencyArray[] = {
-            Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
-            Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
-            Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
-            Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
-            Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
-            Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
+        Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
+        Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
+        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
+        Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
+        Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
+        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
     };
 
     private static final String languageArray[] = {
-            Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
-            Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
-            Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
-            Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
+        Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
+        Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
+        Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
+        Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
     };
 
     private static final String typesArray[] = {"Bank", "Cash"};
 
     private static final String expenseReports[][] = {
-            {"Expense by Category", "View all expenses sorted by category type"},
-            {"Daily Expense", "View the last seven days breakdown of your expenses by specific accounts"},
-            {"Monthly Expense", "View a month by month breakdown of your expenses by specific accounts"}
-        };
+        {"Expense by Category", "View all expenses sorted by category type"},
+        {"Daily Expense", "View the last seven days breakdown of your expenses by specific accounts"},
+        {"Monthly Expense", "View a month by month breakdown of your expenses by specific accounts"}
+    };
 
     private static final String incomeReports[][] = {
-            {"Income by Category", "View all incomes sorted by category type"},
-            {"Daily Income", "View the last seven days breakdown of your income by specific accounts"},
-            {"Monthly Expense", "View a month by month breakdown of your income by specific accounts"}
-        };
+        {"Income by Category", "View all incomes sorted by category type"},
+        {"Daily Income", "View the last seven days breakdown of your income by specific accounts"},
+        {"Monthly Expense", "View a month by month breakdown of your income by specific accounts"}
+    };
 
     private static final String cashFlowReports[][] = {
-            {"Income Vs Expense", "Compare your total expense and income"}
-        };
+        {"Income Vs Expense", "Compare your total expense and income"}
+    };
 
     private static final String balanceReports[][] = {
-            {"Daily Expense", "Compare your income and expenses on a daily basis"}
-        };
+        {"Daily Expense", "Compare your income and expenses on a daily basis"}
+    };
+
+    private static final String transactionPeriods[] = {
+        "All Time",
+        "This Month",
+        "Past 7 Days",
+        "Today"
+    };
 
     static String[] getTransactionTypeList() {
         return transactionTypeList;
@@ -84,19 +91,23 @@ class GlobalConstants {
         return currencyArray;
     }
 
-    public static String[][] getExpenseReports() {
+    static String[][] getExpenseReports() {
         return expenseReports;
     }
 
-    public static String[][] getIncomeReports() {
+    static String[][] getIncomeReports() {
         return incomeReports;
     }
 
-    public static String[][] getCashFlowReports() {
+    static String[][] getCashFlowReports() {
         return cashFlowReports;
     }
 
-    public static String[][] getBalanceReports() {
+    static String[][] getBalanceReports() {
         return balanceReports;
+    }
+
+    static String[] getTransactionPeriods() {
+        return transactionPeriods;
     }
 }

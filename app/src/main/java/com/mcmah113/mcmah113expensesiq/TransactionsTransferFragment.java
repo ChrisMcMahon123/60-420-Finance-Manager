@@ -189,7 +189,7 @@ public class TransactionsTransferFragment extends Fragment {
             //save an API call and speed the program
             //same format as the API call
             rateString = "1.00 " + localeFrom + " = 1.00 " + localeTo;
-
+            exchangeRate = 1.00;
             final Date currentTime = Calendar.getInstance().getTime();
             refreshDate = "Refreshed on " + new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
         }

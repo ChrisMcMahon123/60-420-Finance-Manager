@@ -64,7 +64,7 @@ public class SignUp extends AppCompatActivity {
         buttonSignUp.setOnTouchListener(onTouchListener);//ignore this warning...
         buttonSignUp.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                final String username = editTextUsername.getText().toString();
+                final String username = editTextUsername.getText().toString().trim();
                 final String password = editTextPassword.getText().toString();
                 final String passwordConfirm = editTextPasswordConfirm.getText().toString();
 
@@ -127,22 +127,17 @@ public class SignUp extends AppCompatActivity {
             double bankAccount = Double.parseDouble(bankString);
             double cashAccount = Double.parseDouble(cashString);
 
-            if(bankAccount >= 0 && cashAccount >= 0) {
-                if(databaseHelper.userSignUp(username, password, locale, language, bankAccount, cashAccount)) {
-                    //valid sign up, return to login activity
-                    Toast.makeText(this, "Sign up successfull", Toast.LENGTH_SHORT).show();
+            if(databaseHelper.userSignUp(username, password, locale, language, bankAccount, cashAccount)) {
+                //valid sign up, return to login activity
+                Toast.makeText(this, "Sign up successfull", Toast.LENGTH_SHORT).show();
 
-                    Intent intent = new Intent(this, Login.class);
-                    intent.putExtra("username", username);
-                    intent.putExtra("password", password);
-                    startActivity(intent);
-                } else {
-                    //username is already being used or something else failed
-                    Toast.makeText(this, "Username is already taken", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else {
-                Toast.makeText(this, "Invalid money inputs", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, Login.class);
+                intent.putExtra("username", username);
+                intent.putExtra("password", password);
+                startActivity(intent);
+            } else {
+                //username is already being used or something else failed
+                Toast.makeText(this, "Username is already taken", Toast.LENGTH_SHORT).show();
             }
         }
         catch(Exception exception) {

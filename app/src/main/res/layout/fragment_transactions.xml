@@ -26,14 +26,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Account"
+                    android:text="@string/account_transaction_label"
                     android:textSize="18sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Period"
+                    android:text="@string/period_label"
                     android:textSize="18sp" />
 
 

@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 1324;
+    private static final int DATABASE_VERSION = 111;
 
     //table names
     private static final String TABLE_USERS = "Users";
@@ -46,11 +46,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         "transaction_id",
         "user_id",
         "account_from_id",
-        "account_to_Id",
+        "account_to_id",
         "transaction_type",
         "locale",
         "amount",
-        "date"
+        "date",
+        "note"
     };
 
     //determines either to query for hidden accounts
@@ -97,6 +98,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMNS_TRANSACTIONS[5] + " TEXT,\n" +
                 COLUMNS_TRANSACTIONS[6] + " REAL,\n" +
                 COLUMNS_TRANSACTIONS[7] + " TEXT, \n" +
+                COLUMNS_TRANSACTIONS[8] + " TEXT, \n" +
                 "FOREIGN KEY(" + COLUMNS_TRANSACTIONS[1] + ") " +
                 "REFERENCES " + TABLE_USERS + "(" + COLUMNS_USERS[0] + ")\n" +
             ");";
@@ -477,7 +479,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         VALUES.put(COLUMNS_ACCOUNTS[5], Double.toString(account.getInitialBalance()));
         VALUES.put(COLUMNS_ACCOUNTS[6], Double.toString(account.getCurrentBalance()));
         VALUES.put(COLUMNS_ACCOUNTS[7], account.getDescription());
-        VALUES.put(COLUMNS_ACCOUNTS[8], account.getHiddenFlag());
+
+        if(account.getHiddenFlag()) {
+            VALUES.put(COLUMNS_ACCOUNTS[8], 1);
+        }
+        else {
+            VALUES.put(COLUMNS_ACCOUNTS[8], 0);
+        }
 
         Log.d("description", account.getDescription());
 
@@ -517,22 +525,138 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    //transactions doesn't care about the accountId,
-    //because all account are used by default
-    //need to join on accounts to see if the account is hidden
-    //don't show transactions for hidden accounts
-    boolean createNewTransaction(Transaction transaction) {
-        return false;
+    boolean createNewTransaction(Transaction transaction, int userId) {
+        try {
+            SQLiteDatabase database = this.getWritableDatabase();
+            ContentValues VALUES = new ContentValues();
+            VALUES.put(COLUMNS_TRANSACTIONS[1], userId);
+            VALUES.put(COLUMNS_TRANSACTIONS[2], transaction.getAccountFromId());
+            VALUES.put(COLUMNS_TRANSACTIONS[3], transaction.getAccountToId());
+            VALUES.put(COLUMNS_TRANSACTIONS[4], transaction.getType());
+            VALUES.put(COLUMNS_TRANSACTIONS[5], transaction.getLocale());
+            VALUES.put(COLUMNS_TRANSACTIONS[6], transaction.getAmount());
+            VALUES.put(COLUMNS_TRANSACTIONS[7], transaction.getDate());
+            VALUES.put(COLUMNS_TRANSACTIONS[8], transaction.getNote());
+
+            database.insert(TABLE_TRANSACTIONS, null, VALUES);
+            database.close();
+
+            return true;
+        }
+        catch(Exception exception) {
+            Log.d("newTransaction()","Attempt to create new transaction failed");
+            exception.printStackTrace();
+            return false;
+        }
     }
 
-    Transaction[] getAllTransactions(int userId, int accountId) {
-        return null;
-    }
+    Transaction[] getTransactionsRange(int accountId, int userId, String startDay, String endDay) {
+        SQLiteDatabase database = this.getReadableDatabase();
+        Cursor cursor;
+        String ARGUMENTS[];
+        Transaction transaction[] = new Transaction[0];
 
-    Transaction[] getTransactionsSpecific(int userId, String startDay, String endDay, String incomeExpense, String type) {
-        return null;
-    }
+        String sqlQuery =
+            "SELECT \n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[3] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[4] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[5] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[6] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ",\n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[8] + " \n" +
+            "FROM \n" +
+                TABLE_TRANSACTIONS + " \n";
 
+        if(startDay.isEmpty() && endDay.isEmpty()) {
+            //get all transactions of all time
+            if(accountId > 0) {
+                //grab specific account transactions
+                if(displayHiddenFlag) {
+                    //ignore the hidden flag
+                    sqlQuery +=
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
+                    ";";
+                }
+                else {
+                    //don't grab transactions that come from a hidden account
+                    sqlQuery +=
+                        "JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[0] + " = " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + "\n" +
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
+                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
+                    ";";
+                }
+
+                ARGUMENTS = new String[]{Integer.toString(userId),Integer.toString(accountId)};
+
+                cursor = database.rawQuery(sqlQuery, ARGUMENTS);
+            }
+            else {
+                //grab all account transactions
+                if(displayHiddenFlag) {
+                    sqlQuery +=
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                    ";";
+                }
+                else {
+                    //don't grab transactions that come from a hidden account
+                    sqlQuery +=
+                        "JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[0] + " = " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + "\n" +
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
+                    ";";
+                }
+                ARGUMENTS = new String[]{Integer.toString(userId)};
+
+                cursor = database.rawQuery(sqlQuery, ARGUMENTS);
+            }
+        }
+        else {
+            cursor = null;
+        }
+
+        if(cursor != null) {
+            cursor.moveToFirst();
+
+            transaction = new Transaction[cursor.getCount()];
+
+            int accountFromId;
+            int accountToId;
+            String type;
+            String locale;
+            String symbol;
+            double amount;
+            String date;
+            String note;
+
+            for(int i = 0; i < cursor.getCount(); i ++) {
+                accountFromId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[2]));
+                accountToId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[3]));
+                type = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[4]));
+                locale = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[5]));
+                symbol = getLocaleCurrencySymbol(locale);
+                amount = cursor.getDouble(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[6]));
+                date = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[7]));
+                note = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[8]));
+
+                transaction[i] = new Transaction(accountFromId,accountToId,type,locale,symbol,amount,date,note);
+
+                cursor.moveToNext();
+            }
+
+            cursor.close();
+        }
+
+        database.close();
+
+        return transaction;
+    }
 
     private String getLocaleCurrencySymbol(String locale) {
         String symbol = Currency.getInstance(locale).getSymbol();

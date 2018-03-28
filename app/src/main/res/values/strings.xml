@@ -86,5 +86,9 @@
     <string name="save_dialog_option">Save</string>
     <string name="are_you_sure_dialog_option">Are you sure you want to delete</string>
     <string name="delete_account_dialog_option">Delete Account</string>
+    <string name="period_label">Period</string>
+    <string name="account_transaction_label">Account</string>
+    <string name="transferred_money_to_text">Transferred money to</string>
+    <string name="note_text">Note:</string>
 
 </resources>

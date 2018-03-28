@@ -2,6 +2,7 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,10 @@ import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class TransactionsNewFragment extends Fragment {
     private final String transactionTypeList[] = GlobalConstants.getTransactionTypeList();
@@ -36,6 +41,8 @@ public class TransactionsNewFragment extends Fragment {
 
         final int userId = Overview.getUserId();
         final int accountId = getArguments().getInt("accountId");
+
+        final EditText editTextNote = view.findViewById(R.id.editTextNote);
 
         final Account[] accountsList = databaseHelper.getAccountList(userId);
         final String spinnerString[] = new String[accountsList.length];
@@ -108,17 +115,12 @@ public class TransactionsNewFragment extends Fragment {
                     try {
                         double amount = Double.parseDouble(amountString);
 
-                        final String TransactionType = spinnerTransactionType.getSelectedItem().toString();
-                        final String incomeExpense;
+                        final String transactionType = spinnerTransactionType.getSelectedItem().toString();
                         Account account = null;
 
                         if(radioButtonExpense.isChecked()) {
-                            //take money out of the users account
-                            incomeExpense = "Expense";
+                            //take money out of the users account, can't input signed numbers
                             amount *= -1;
-                        }
-                        else {
-                            incomeExpense = "Income";
                         }
 
                         //find out which accounts were selected and get their Ids
@@ -135,10 +137,19 @@ public class TransactionsNewFragment extends Fragment {
                         databaseHelper.updateAccount(userId, account);
 
                         //record the transaction in the table
+                        final Date currentTime = Calendar.getInstance().getTime();
+                        String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
+                        //accountTo will be -1, since this is income / expense
+                        //transaction id is -1, since its new
+                        Transaction transaction = new Transaction(account.getId(),-1, transactionType,account.getLocale(),account.getSymbol(), amount, date, editTextNote.getText().toString());
 
-
-                        Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();
+                        if(databaseHelper.createNewTransaction(transaction, userId)) {
+                            Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(getContext(), "Failed to record the transaction", Toast.LENGTH_SHORT).show();
+                        }
 
                         onCompleteListener.onCompleteCreateNewTransaction();
                     }

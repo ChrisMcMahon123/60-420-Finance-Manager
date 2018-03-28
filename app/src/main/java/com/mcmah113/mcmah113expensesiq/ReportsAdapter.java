@@ -19,7 +19,7 @@ public class ReportsAdapter extends ArrayAdapter<String[]> {
     View getView(int position, View row, @Nullable ViewGroup parent) {
         if (row == null) {
             //will contain info about that specific account
-            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+            final LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             row = layoutInflater.inflate(R.layout.layout_listview_report_item, null);
 
             final String data[] = getItem(position);
@@ -31,7 +31,7 @@ public class ReportsAdapter extends ArrayAdapter<String[]> {
                 final TextView textViewDescription = row.findViewById(R.id.textViewDescription);
                 textViewDescription.setText(data[1]);
 
-                ImageView imageViewReportImage = row.findViewById(R.id.imageViewReportPicture);
+                final ImageView imageViewReportImage = row.findViewById(R.id.imageViewReportPicture);
                 //imageViewReportImage.setImageBitmap();
             }
         }

@@ -11,6 +11,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 public class TransactionsTransferDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
         void onCompleteTransferFunds();
@@ -50,15 +54,17 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
         final TextView textViewBeforeAmount = view.findViewById(R.id.textViewTransferAmountBefore);
         textViewBeforeAmount.setText(amountBeforeString);
 
-        final String amountAfterString = String.format(accountTo.getSymbol() + "%.2f", exchangeAmount);
-        final TextView textViewAfterAmount = view.findViewById(R.id.textViewTransferAmountAfter);
-        textViewAfterAmount.setText(amountAfterString);
-
         final TextView textViewFromLocale = view.findViewById(R.id.textViewFromLocale);
         textViewFromLocale.setText(accountFrom.getLocale());
 
-        final TextView textViewToLocale = view.findViewById(R.id.textViewToLocale);
-        textViewToLocale.setText(accountTo.getLocale());
+        if(!accountFrom.getLocale().equals(accountTo.getLocale())) {
+            final String amountAfterString = String.format(accountTo.getSymbol() + "%.2f", exchangeAmount);
+            final TextView textViewAfterAmount = view.findViewById(R.id.textViewTransferAmountAfter);
+            textViewAfterAmount.setText(amountAfterString);
+
+            final TextView textViewToLocale = view.findViewById(R.id.textViewToLocale);
+            textViewToLocale.setText(accountTo.getLocale());
+        }
 
         //accountFrom
         final TextView textViewAccountFromName = view.findViewById(R.id.textViewAccountFromName);
@@ -93,8 +99,18 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
             databaseHelper.updateAccount(userId, accountTo);
 
             //record the transaction in the table
+            final Date currentTime = Calendar.getInstance().getTime();
+            final String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
+            Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"));
+            Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"));
 
+            if(databaseHelper.createNewTransaction(transaction1, userId) && databaseHelper.createNewTransaction(transaction2, userId) ) {
+                Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(getContext(), "Failed to record the transaction", Toast.LENGTH_SHORT).show();
+            }
 
             Toast.makeText(getContext(), "Successfully transferred the funds", Toast.LENGTH_SHORT).show();
 
