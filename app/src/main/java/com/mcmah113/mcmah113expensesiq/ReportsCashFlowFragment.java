@@ -10,7 +10,7 @@ import android.widget.ListView;
 
 public class ReportsCashFlowFragment extends Fragment {
     public interface OnCompleteListener {
-        void onReportsSelection(Bundle callbackData);
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public ReportsCashFlowFragment() {
@@ -31,13 +31,15 @@ public class ReportsCashFlowFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bundle args = new Bundle();
+                args.putString("fragment","Cash Flow Graph");
+                args.putInt("accountId", -1);
 
                 if(position == 0) {
                     //Expense by Category
                     args.putString("report", "Income Vs Expense");
                 }
 
-                onCompleteListener.onReportsSelection(args);
+                onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
     }

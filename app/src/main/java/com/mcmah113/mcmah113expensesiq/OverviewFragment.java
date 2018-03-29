@@ -9,7 +9,7 @@ import android.widget.Button;
 
 public class OverviewFragment extends Fragment {
     public interface OnCompleteListener {
-        void onCompleteCreateNewAccount();
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public OverviewFragment() {
@@ -29,8 +29,12 @@ public class OverviewFragment extends Fragment {
         buttonNewAccount.setOnTouchListener(onTouchListener);//ignore this warning...
         buttonNewAccount.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                final OverviewFragment.OnCompleteListener onCompleteListener = (OverviewFragment.OnCompleteListener) getActivity();
-                onCompleteListener.onCompleteCreateNewAccount();
+                final Bundle args = new Bundle();
+                args.putInt("accountId", -1);
+                args.putString("fragment", "New Account");
+
+                final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
+                onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
     }

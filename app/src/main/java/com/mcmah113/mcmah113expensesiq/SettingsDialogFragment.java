@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.util.HashMap;
+
 public class SettingsDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
         void onCompleteUserSettings();
@@ -35,7 +37,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
         final DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
 
-        final String userData[] = databaseHelper.getUserSettings(Overview.getUserId());
+        final HashMap<String, String> userData = databaseHelper.getUserSettings(Overview.getUserId());
 
         //getting the layout from the fragment
         final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
@@ -53,7 +55,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
         //set default selected based on user settings
         for(int i = 0; i < languageArray.length; i ++) {
-            if(userData[0].equals(languageArray[i])) {
+            if(userData.get("language").equals(languageArray[i])) {
                 spinnerLanguage.setSelection(i);
                 break;
             }
@@ -66,7 +68,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
         //set default selected based on user settings
         for(int i = 0; i < currencyArray.length; i ++) {
-            if(userData[1].equals(currencyArray[i])) {
+            if(userData.get("locale").equals(currencyArray[i])) {
                 spinnerCurrency.setSelection(i);
                 break;
             }

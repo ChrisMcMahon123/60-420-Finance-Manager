@@ -64,8 +64,10 @@ public class TransactionsTransferFragment extends Fragment {
         spinnerAccountFrom.setAdapter(arrayAdapter);
         spinnerAccountFrom.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
-                                   spinnerAccountTo.getSelectedItem().toString());
+                if(spinnerAccountFrom.getSelectedItem() != null && spinnerAccountTo.getSelectedItem() != null) {
+                    updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
+                                       spinnerAccountTo.getSelectedItem().toString());
+                }
             }
 
             public void onNothingSelected(AdapterView<?> parent) {
@@ -76,8 +78,10 @@ public class TransactionsTransferFragment extends Fragment {
         spinnerAccountTo.setAdapter(arrayAdapter);
         spinnerAccountTo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
-                                   spinnerAccountTo.getSelectedItem().toString());
+                if(spinnerAccountFrom.getSelectedItem() != null && spinnerAccountTo.getSelectedItem() != null) {
+                    updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
+                                       spinnerAccountTo.getSelectedItem().toString());
+                }
             }
 
             public void onNothingSelected(AdapterView<?> parent) {
@@ -96,8 +100,10 @@ public class TransactionsTransferFragment extends Fragment {
         }
 
         //make the default call to get the currency conversion
-        updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
-                           spinnerAccountTo.getSelectedItem().toString());
+        if(spinnerAccountFrom.getSelectedItem() != null && spinnerAccountTo.getSelectedItem() != null) {
+            updateExchangeRate(spinnerAccountFrom.getSelectedItem().toString(),
+                               spinnerAccountTo.getSelectedItem().toString());
+        }
 
         //set sign up button properties
         final CustomOnTouchListener onTouchListener = new CustomOnTouchListener(getResources().getColor(R.color.colorPrimaryDark, getContext().getTheme()));
@@ -106,95 +112,103 @@ public class TransactionsTransferFragment extends Fragment {
         buttonTransaction.setOnTouchListener(onTouchListener);//ignore this warning...
         buttonTransaction.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if(!spinnerAccountFrom.getSelectedItem().toString().equals(spinnerAccountTo.getSelectedItem().toString())) {
-                    //2 different accounts selected, good
-                    if(!editTextAmount.getText().toString().isEmpty()) {
-                        //amount is filled out, try and convert it
-                        try {
-                            double amount = Double.parseDouble(editTextAmount.getText().toString());
-                            int accountFromId = -1;
-                            int accountToId = -1;
+                //find out which accounts were selected and get their Ids
+                int accountFromId = -1;
+                int accountToId = -1;
 
-                            //find out which accounts were selected and get their Ids
-                            for(int i = 0; i < spinnerString.length; i ++) {
-                                if(spinnerString[i].equals(spinnerAccountFrom.getSelectedItem())) {
-                                    accountFromId = accountsList[i].getId();
-                                    break;
-                                }
+                for(int i = 0; i < spinnerString.length; i ++) {
+                    if(spinnerString[i].equals(spinnerAccountFrom.getSelectedItem())) {
+                        accountFromId = accountsList[i].getId();
+                        break;
+                    }
+                }
+
+                for(int i = 0; i < spinnerString.length; i ++) {
+                    if(spinnerString[i].equals(spinnerAccountTo.getSelectedItem())) {
+                        accountToId = accountsList[i].getId();
+                        break;
+                    }
+                }
+                if(accountFromId > 0 && accountToId > 0) {
+                    if(!spinnerAccountFrom.getSelectedItem().toString().equals(spinnerAccountTo.getSelectedItem().toString())) {
+                        //2 different accounts selected, good
+                        if(!editTextAmount.getText().toString().isEmpty()) {
+                            //amount is filled out, try and convert it
+                            try {
+                                double amount = Double.parseDouble(editTextAmount.getText().toString());
+
+
+                                final Bundle args = new Bundle();
+                                args.putInt("accountFromId", accountFromId);
+                                args.putInt("accountToId", accountToId);
+                                args.putDouble("amount", amount);
+                                args.putDouble("exchangeRate", exchangeRate);
+                                args.putString("note", editTextNote.toString());
+
+                                TransactionsTransferDialogFragment dialogFragment = new TransactionsTransferDialogFragment();
+                                dialogFragment.setArguments(args);
+                                dialogFragment.show(getFragmentManager(), "Account Dialog");
                             }
-
-                            for(int i = 0; i < spinnerString.length; i ++) {
-                                if(spinnerString[i].equals(spinnerAccountTo.getSelectedItem())) {
-                                    accountToId = accountsList[i].getId();
-                                    break;
-                                }
+                            catch(Exception exception) {
+                                Toast.makeText(getContext(), "Invalid Money input", Toast.LENGTH_SHORT).show();
                             }
-
-                            final Bundle args = new Bundle();
-                            args.putInt("accountFromId", accountFromId);
-                            args.putInt("accountToId", accountToId);
-                            args.putDouble("amount", amount);
-                            args.putDouble("exchangeRate", exchangeRate);
-                            args.putString("note", editTextNote.toString());
-
-                            TransactionsTransferDialogFragment dialogFragment = new TransactionsTransferDialogFragment();
-                            dialogFragment.setArguments(args);
-                            dialogFragment.show(getFragmentManager(), "Account Dialog");
                         }
-                        catch(Exception exception) {
-                            Toast.makeText(getContext(), "Invalid Money input", Toast.LENGTH_SHORT).show();
+                        else {
+                            Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
                         }
                     }
                     else {
-                        Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
+                        //same account selected, don;t let them transfer funds
+                        Toast.makeText(getContext(), "Cannot transfer to the same account", Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
-                    //same account selected, don;t let them transfer funds
-                    Toast.makeText(getContext(), "Cannot transfer to the same account", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
     public void updateExchangeRate(String spinnerFrom, String spinnerTo) {
-        //only want the locale for the two bank accounts
-        String localeFrom = spinnerFrom.substring(spinnerFrom.indexOf('(') +1,spinnerFrom.indexOf(')'));
-        String localeTo = spinnerTo.substring(spinnerTo.indexOf('(') +1,spinnerTo.indexOf(')'));
-        String refreshDate;
-        String rateString;
+        if(!spinnerFrom.isEmpty() && !spinnerTo.isEmpty()) {
+            //only want the locale for the two bank accounts
+            String localeFrom = spinnerFrom.substring(spinnerFrom.indexOf('(') +1,spinnerFrom.indexOf(')'));
+            String localeTo = spinnerTo.substring(spinnerTo.indexOf('(') +1,spinnerTo.indexOf(')'));
+            String refreshDate;
+            String rateString;
 
-        if(!localeFrom.equals(localeTo)) {
-            try {
-                //make the API request to get the information
-                HashMap<String, String> dataAPI = new FixerCurrencyAPI().execute(localeFrom, localeTo).get();
+            if(!localeFrom.equals(localeTo)) {
+                try {
+                    //make the API request to get the information
+                    HashMap<String, String> dataAPI = new FixerCurrencyAPI().execute(localeFrom, localeTo).get();
 
-                refreshDate = "Refreshed on " + dataAPI.get("Date");
-                //rates are in EUR, common base, division to find
-                //cross currency ratio
-                final double currency1 = Double.parseDouble(dataAPI.get(localeFrom));
-                final double currency2 = Double.parseDouble(dataAPI.get(localeTo));
-                exchangeRate = currency1 / currency2;
+                    refreshDate = "Refreshed on " + dataAPI.get("Date");
+                    //rates are in EUR, common base, division to find
+                    //cross currency ratio
+                    final double currency1 = Double.parseDouble(dataAPI.get(localeFrom));
+                    final double currency2 = Double.parseDouble(dataAPI.get(localeTo));
+                    exchangeRate = currency1 / currency2;
 
-                rateString = String.format("%.2f", exchangeRate) + " " + localeFrom + " = 1.00 " + localeTo;
-            } catch (Exception exception) {
-                Log.d("Failed", "Couldn't get currency rate");
-                exception.printStackTrace();
-                exchangeRate = 1.00;
-                rateString = "Fixer API is unavailable, assuming 1:1 Ratio";
-                refreshDate = "Unavailable";
+                    rateString = String.format("%.2f", exchangeRate) + " " + localeFrom + " = 1.00 " + localeTo;
+                } catch (Exception exception) {
+                    Log.d("Failed", "Couldn't get currency rate");
+                    exception.printStackTrace();
+                    exchangeRate = 1.00;
+                    rateString = "Fixer API is unavailable, assuming 1:1 Ratio";
+                    refreshDate = "Unavailable";
+                }
             }
-        }
-        else {
-            //save an API call and speed the program
-            //same format as the API call
-            rateString = "1.00 " + localeFrom + " = 1.00 " + localeTo;
-            exchangeRate = 1.00;
-            final Date currentTime = Calendar.getInstance().getTime();
-            refreshDate = "Refreshed on " + new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
-        }
+            else {
+                //save an API call and speed the program
+                //same format as the API call
+                rateString = "1.00 " + localeFrom + " = 1.00 " + localeTo;
+                exchangeRate = 1.00;
+                final Date currentTime = Calendar.getInstance().getTime();
+                refreshDate = "Refreshed on " + new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+            }
 
-        textViewRate.setText(rateString);
-        textViewRefresh.setText(refreshDate);
+            textViewRate.setText(rateString);
+            textViewRefresh.setText(refreshDate);
+        }
     }
 }

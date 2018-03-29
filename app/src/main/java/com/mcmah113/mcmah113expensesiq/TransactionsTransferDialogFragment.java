@@ -17,7 +17,7 @@ import java.util.Date;
 
 public class TransactionsTransferDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
-        void onCompleteTransferFunds();
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public TransactionsTransferDialogFragment() {
@@ -114,12 +114,18 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
 
             Toast.makeText(getContext(), "Successfully transferred the funds", Toast.LENGTH_SHORT).show();
 
-            onCompleteListener.onCompleteTransferFunds();
+            final Bundle args = new Bundle();
+            args.putString("fragment", "Accounts");
+            args.putInt("accountId", -1);
+            onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
         transferFundsDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-            onCompleteListener.onCompleteTransferFunds();
+            final Bundle args = new Bundle();
+            args.putString("fragment", "Make a Transfer");
+            args.putInt("accountId", accountFromId);
+            onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
 

@@ -10,7 +10,7 @@ import android.widget.ListView;
 
 public class ReportsExpenseFragment extends Fragment {
     public interface OnCompleteListener {
-        void onReportsSelection(Bundle callbackData);
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public ReportsExpenseFragment() {
@@ -31,6 +31,8 @@ public class ReportsExpenseFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Bundle args = new Bundle();
+                args.putString("fragment","Expense Graph");
+                args.putInt("accountId", -1);
 
                 if(position == 0) {
                     //Expense by Category
@@ -45,7 +47,7 @@ public class ReportsExpenseFragment extends Fragment {
                     args.putString("report", "Monthly Expense");
                 }
 
-                onCompleteListener.onReportsSelection(args);
+                onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
     }

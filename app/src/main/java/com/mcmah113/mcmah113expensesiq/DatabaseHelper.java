@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -260,7 +261,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    String[] getUserSettings(int userId) {
+    HashMap<String,String> getUserSettings(int userId) {
         final SQLiteDatabase database = this.getReadableDatabase();
 
         final String ARGUMENTS[] = {Integer.toString(userId)};
@@ -269,14 +270,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.moveToFirst();
 
         //only need language and locale for now, if time, allow username and password change
-        String userData[] = new String[3];
+        HashMap<String, String> userData = new HashMap<>();
 
         //userId, username, password, language, locale, adding in symbol for ease of use
         //userData[1] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[1]));
         //userData[2] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[2]));
-        userData[0] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[3]));
-        userData[1] = cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[4]));
-        userData[2] = getLocaleCurrencySymbol(userData[1]);
+        userData.put("language",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[3])));
+        userData.put("locale",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[4])));
+        userData.put("symbol",getLocaleCurrencySymbol(userData.get("locale")));
 
         cursor.close();
         database.close();

@@ -2,7 +2,6 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,7 @@ public class TransactionsNewFragment extends Fragment {
     private final String transactionTypeList[] = GlobalConstants.getTransactionTypeList();
 
     public interface OnCompleteListener {
-        void onCompleteCreateNewTransaction();
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public TransactionsNewFragment() {
@@ -98,6 +97,7 @@ public class TransactionsNewFragment extends Fragment {
                 radioButtonExpense.setChecked(true);
             }
             else {
+                //accountId = -2 or an actual accountId
                 radioButtonIncome.setChecked(true);
             }
         }
@@ -110,25 +110,25 @@ public class TransactionsNewFragment extends Fragment {
         buttonApply.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String amountString = editTextAmount.getText().toString();
+                Account account = null;
 
-                if(!amountString.isEmpty()) {
+                //find out which accounts were selected and get their Ids
+                for(int i = 0; i < spinnerString.length; i ++) {
+                    if(spinnerString[i].equals(spinnerAccount.getSelectedItem())) {
+                        account = accountsList[i];
+                        break;
+                    }
+                }
+
+                if(!amountString.isEmpty() && account != null) {
                     try {
-                        double amount = Double.parseDouble(amountString);
-
                         final String transactionType = spinnerTransactionType.getSelectedItem().toString();
-                        Account account = null;
+
+                        double amount = Double.parseDouble(amountString);
 
                         if(radioButtonExpense.isChecked()) {
                             //take money out of the users account, can't input signed numbers
                             amount *= -1;
-                        }
-
-                        //find out which accounts were selected and get their Ids
-                        for(int i = 0; i < spinnerString.length; i ++) {
-                            if(spinnerString[i].equals(spinnerAccount.getSelectedItem())) {
-                                account = accountsList[i];
-                                break;
-                            }
                         }
 
                         //update the account
@@ -151,7 +151,11 @@ public class TransactionsNewFragment extends Fragment {
                             Toast.makeText(getContext(), "Failed to record the transaction", Toast.LENGTH_SHORT).show();
                         }
 
-                        onCompleteListener.onCompleteCreateNewTransaction();
+                        Bundle args = new Bundle();
+                        args.putString("fragment", "Accounts");
+                        args.putInt("accountId", -1);
+
+                        onCompleteListener.onCompleteLaunchFragment(args);
                     }
                     catch(Exception exception) {
                         Toast.makeText(getContext(), "Invalid Money input", Toast.LENGTH_SHORT).show();

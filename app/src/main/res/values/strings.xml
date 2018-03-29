@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">mcmah113ExpensesIQ</string>
+    <string name="app_name">Expenses IQ</string>
     <string name="login_activity_title">Login</string>
     <string name="company_logo_content_description">Company Logo</string>
     <string name="username_login_label">Username</string>

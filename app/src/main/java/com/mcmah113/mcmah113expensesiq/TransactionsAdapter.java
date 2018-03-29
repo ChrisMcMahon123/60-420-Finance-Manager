@@ -46,7 +46,7 @@ public class TransactionsAdapter extends ArrayAdapter<Transaction> {
                 textViewDate.setText(transaction.getDate());
 
                 final TextView textViewNote = row.findViewById(R.id.textViewNote);
-                textViewNote.setText(getContext().getResources().getString(R.string.note_text) + " " + transaction.getNote());
+                textViewNote.setText(getContext().getResources().getString(R.string.note_text) + "\n" + transaction.getNote());
 
                 final TextView textViewType = row.findViewById(R.id.textViewType);
 

@@ -2,7 +2,6 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,15 +17,12 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class AccountsEditFragment extends Fragment {
-    //array holds the currency name and its symbol
     private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
-
     private static final String typesArray[] = GlobalConstants.getTypesArray();
-
     private Account account;
 
     public interface OnCompleteListener {
-        void onCompleteAccountEdit();
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public AccountsEditFragment() {
@@ -106,15 +102,6 @@ public class AccountsEditFragment extends Fragment {
                 //only want the code inside the brackets
                 locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
-                boolean hiddenFlag;
-
-                if(checkboxHiddenAccount.isChecked()) {
-                    hiddenFlag = true;
-                }
-                else {
-                    hiddenFlag = false;
-                }
-
                 if(name.isEmpty() || initialBalanceString.isEmpty() || currentBalanceString.isEmpty()) {
                     Toast.makeText(getContext(), "(*) Fields are required", Toast.LENGTH_SHORT).show();
                 }
@@ -131,19 +118,19 @@ public class AccountsEditFragment extends Fragment {
 
                             if(currentBalance != account.getCurrentBalance()) {
                                 editFlag = true;
-                                note += "Current balance changed \n";
+                                note += "Current balance changed from " + account.getCurrentBalance() + " to " + currentBalance + "\n";
                             }
                             if(initialBalance != account.getInitialBalance()) {
                                 editFlag = true;
-                                note += "Initial balance changed \n";
+                                note += "Initial balance changed from "+ account.getInitialBalance() + " to " + initialBalance + "\n";
                             }
                             if(!locale.equals(account.getLocale())) {
                                 editFlag = true;
-                                note += "Account locale changed \n";
+                                note += "Account locale changed from "+ account.getLocale() + " to " + locale + "\n";
                             }
                             if(!type.equals(account.getType())) {
                                 editFlag = true;
-                                note += "Account type changed \n";
+                                note += "Account type changed from "+ account.getType() + " to " + type + "\n";
                             }
 
                             //save changes to existing account
@@ -153,7 +140,7 @@ public class AccountsEditFragment extends Fragment {
                             account.setInitialBalance(initialBalance);
                             account.setCurrentBalance(currentBalance);
                             account.setDescription(description);
-                            account.setHiddenFlag(hiddenFlag);
+                            account.setHiddenFlag(checkboxHiddenAccount.isChecked());
 
                             if(databaseHelper.updateAccount(userId, account)) {
                                 //record the transaction in the table
@@ -161,7 +148,7 @@ public class AccountsEditFragment extends Fragment {
                                     final Date currentTime = Calendar.getInstance().getTime();
                                     String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
-                                    Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), currentBalance, date, note);
+                                    Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), 0, date, note);
 
                                     databaseHelper.createNewTransaction(transaction, userId);
                                 }
@@ -174,17 +161,20 @@ public class AccountsEditFragment extends Fragment {
                         }
                         else {
                             //create a new account
-                            if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, hiddenFlag)) {
+                            if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, checkboxHiddenAccount.isChecked())) {
                                 Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
                             }
                             else {
                                 Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
                             }
                         }
+                        final Bundle args = new Bundle();
+                        args.putInt("accountId", -1);
+                        args.putString("fragment", "Accounts");
 
                         //return to the main activity which will redirect to Accounts fragment
                         final AccountsEditFragment.OnCompleteListener onCompleteListener = (AccountsEditFragment.OnCompleteListener) getActivity();
-                        onCompleteListener.onCompleteAccountEdit();
+                        onCompleteListener.onCompleteLaunchFragment(args);
                     }
                     catch(Exception exception) {
                         //invalid bank account or cash account input

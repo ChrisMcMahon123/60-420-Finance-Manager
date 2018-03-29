@@ -4,15 +4,11 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 public class ReportsFragment extends Fragment {
-    public static int listPosition = 0;
-
     public ReportsFragment() {
 
     }
@@ -22,22 +18,15 @@ public class ReportsFragment extends Fragment {
     }
 
     public void onViewCreated(View view, Bundle bundle) {
-        final int userId = Overview.getUserId();
-        final String username = Overview.getUsername();
+        final ReportsPagerAdapter reportsPagerAdapter = new ReportsPagerAdapter(getActivity().getSupportFragmentManager());
 
-        ReportsPagerAdapter reportsPagerAdapter = new ReportsPagerAdapter(getActivity().getSupportFragmentManager());
-
-        ViewPager viewPager = view.findViewById(R.id.container);
+        final ViewPager viewPager = view.findViewById(R.id.container);
         viewPager.setAdapter(reportsPagerAdapter);
+        viewPager.setCurrentItem(GlobalConstants.getReportsPosition(), true);
 
-        TabLayout tabLayout = view.findViewById(R.id.tabs);
+        final TabLayout tabLayout = view.findViewById(R.id.tabs);
 
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(viewPager));
-    }
-
-    public static void setPosition(int position) {
-        listPosition = position;
-        Log.d("position", "" + listPosition);
     }
 }

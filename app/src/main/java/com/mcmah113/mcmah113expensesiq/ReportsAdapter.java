@@ -17,7 +17,7 @@ public class ReportsAdapter extends ArrayAdapter<String[]> {
 
     public @NonNull
     View getView(int position, View row, @Nullable ViewGroup parent) {
-        if (row == null) {
+        if(row == null) {
             //will contain info about that specific account
             final LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             row = layoutInflater.inflate(R.layout.layout_listview_report_item, null);

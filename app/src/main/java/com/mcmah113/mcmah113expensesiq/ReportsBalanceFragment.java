@@ -10,7 +10,7 @@ import android.widget.ListView;
 
 public class ReportsBalanceFragment extends Fragment {
     public interface OnCompleteListener {
-        void onReportsSelection(Bundle callbackData);
+        void onCompleteLaunchFragment(Bundle args);
     }
 
     public ReportsBalanceFragment() {
@@ -31,12 +31,14 @@ public class ReportsBalanceFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bundle args = new Bundle();
+                args.putString("fragment","Balance");
+                args.putInt("accountId", -1);
 
                 if(position == 0) {
                     args.putString("report", "Daily Balance");
                 }
 
-                onCompleteListener.onReportsSelection(args);
+                onCompleteListener.onCompleteLaunchFragment(args);
             }
         });
     }

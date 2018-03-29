@@ -3,7 +3,6 @@ package com.mcmah113.mcmah113expensesiq;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -108,7 +107,7 @@ public class AccountsFragment extends Fragment {
 
     //creates the listView header that will show the accounts overview
     //data like total currencies for all accounts and total accounts
-    public View createListHeader(String summary[][], Account[] accountList, String[] userInfo) {
+    public View createListHeader(String summary[][], Account[] accountList, HashMap<String, String> userData) {
         final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(24,5,24,5);
 
@@ -147,7 +146,7 @@ public class AccountsFragment extends Fragment {
         verticalLayout.addView(horizontalLayout);
 
         //total amount of currency
-        final String totalMoney = getString(R.string.totalAmountofMoney_text) + " (" +userInfo[1] + ")";
+        final String totalMoney = getString(R.string.totalAmountofMoney_text) + " (" + userData.get("locale") + ")";
         final TextView textCurrencyTotalAmount = new TextView(getContext());
         textCurrencyTotalAmount.setText(totalMoney);
         textCurrencyTotalAmount.setTextSize(18);
@@ -171,7 +170,7 @@ public class AccountsFragment extends Fragment {
         //rates of the locales
         HashMap<String, String> hashMapData = new HashMap<>();
         HashSet<String> hashSetLocales = new HashSet<>();
-        hashSetLocales.add(userInfo[1]);
+        hashSetLocales.add(userData.get("locale"));
 
         for(Account account : accountList) {
             hashSetLocales.add(account.getLocale());
@@ -188,7 +187,7 @@ public class AccountsFragment extends Fragment {
                 //API call to get all currency exchange rates
                 hashMapData = new FixerCurrencyAPI().execute(hashSetLocales.toArray(new String[hashSetLocales.size()])).get();
 
-                currency2 = Double.parseDouble(hashMapData.get(userInfo[1]));
+                currency2 = Double.parseDouble(hashMapData.get(userData.get("locale")));
 
                 verticalLayout.addView(horizontalLayout);
 
@@ -244,7 +243,7 @@ public class AccountsFragment extends Fragment {
 
         //set the text of the total currency
         //will not show up if the exchange rates weren't retrieved
-        textViewTotalAmountValue.setText(String.format(userInfo[2] + "%.2f", totalMoneyAmount));
+        textViewTotalAmountValue.setText(String.format(userData.get("symbol") + "%.2f", totalMoneyAmount));
 
         return verticalLayout;
     }
@@ -254,5 +253,9 @@ public class AccountsFragment extends Fragment {
     //the instance from calling this function
     public static DialogFragment getAlertDialog() {
         return accountDialog;
+    }
+
+    public static void setAlertDialog() {
+        accountDialog = null;
     }
 }
