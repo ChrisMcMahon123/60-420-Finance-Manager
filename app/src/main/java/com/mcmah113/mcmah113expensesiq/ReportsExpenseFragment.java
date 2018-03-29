@@ -7,10 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class ReportsExpenseFragment extends Fragment {
+    public interface OnCompleteListener {
+        void onReportsSelection(Bundle callbackData);
+    }
+
     public ReportsExpenseFragment() {
 
     }
@@ -20,6 +22,7 @@ public class ReportsExpenseFragment extends Fragment {
     }
 
     public void onViewCreated(View view, Bundle bundle) {
+        final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
         final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getExpenseReports());
 
         //set up the listView properties
@@ -27,11 +30,23 @@ public class ReportsExpenseFragment extends Fragment {
         listView.setAdapter(reportsAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final Bundle args = new Bundle();
-                args.putString("accountId", "");
+                Bundle args = new Bundle();
 
-                Toast.makeText(getContext(), "Expense Report at " + position, Toast.LENGTH_SHORT).show();
+                if(position == 0) {
+                    //Expense by Category
+                    args.putString("report", "Expense by Category");
+                }
+                else if(position == 1) {
+                    //Daily Expense
+                    args.putString("report", "Daily Expense");
+                }
+                else if(position == 2) {
+                    //Monthly Expense
+                    args.putString("report", "Monthly Expense");
+                }
+
+                onCompleteListener.onReportsSelection(args);
             }
         });
-   }
+    }
 }

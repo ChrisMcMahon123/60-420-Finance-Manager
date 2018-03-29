@@ -2,7 +2,6 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +9,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 public class TransactionsFragment extends Fragment {
     private DatabaseHelper databaseHelper;
@@ -106,8 +103,9 @@ public class TransactionsFragment extends Fragment {
 
     private void updateTransactions(int accountId, int userId, int positionOfSelected) {
         //show transaction histories for each account
-        Date dateToday = Calendar.getInstance().getTime();
-        String today = new SimpleDateFormat("yyyy-MM-dd").format(dateToday);
+        Calendar calendar = Calendar.getInstance();
+        Calendar start;
+        Calendar end;
 
         String startDay = "";
         String endDay = "";
@@ -120,22 +118,30 @@ public class TransactionsFragment extends Fragment {
                 break;
             case 1:
                 //this month
-                int month = Integer.parseInt(today.substring(today.indexOf('-') +1,today.lastIndexOf('-')));
-                int maxDate = Calendar.getInstance().getActualMaximum(month);
-                startDay = "";
-                endDay = "";
+                start = (Calendar) calendar.clone();
+                start.set(Calendar.DAY_OF_MONTH, start.getActualMinimum(Calendar.DAY_OF_MONTH));
+
+                end = (Calendar) start.clone();
+                end.add(Calendar.DAY_OF_MONTH, end.getActualMaximum(Calendar.DAY_OF_MONTH)-1);
+
+                startDay = new SimpleDateFormat("yyyy-MM-dd").format(start.getTime());
+                endDay = new SimpleDateFormat("yyyy-MM-dd").format(end.getTime());
                 break;
             case 2:
                 //this week
-                startDay = "";
-                endDay = "";
-                Calendar.getInstance().getFirstDayOfWeek();
+                start = (Calendar) calendar.clone();
+                start.add(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek() - start.get(Calendar.DAY_OF_WEEK));
+
+                end = (Calendar) start.clone();
+                end.add(Calendar.DAY_OF_YEAR, 6);
+
+                startDay = new SimpleDateFormat("yyyy-MM-dd").format(start.getTime());
+                endDay = new SimpleDateFormat("yyyy-MM-dd").format(end.getTime());
                 break;
             case 3:
                 //today
-                dateToday = Calendar.getInstance().getTime();
-                startDay = new SimpleDateFormat("yyyy-MM-dd").format(dateToday);
-                endDay = "";
+                startDay = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+                endDay = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
                 break;
         }
 

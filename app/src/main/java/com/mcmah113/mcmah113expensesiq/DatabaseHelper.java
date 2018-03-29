@@ -618,8 +618,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
         else {
-            cursor = null;
+            //get all transactions that match a date range
+            if(accountId > 0) {
+                //grab specific account transactions
+                if(displayHiddenFlag) {
+                    //ignore the hidden flag
+                    sqlQuery +=
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                            "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
+                            "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
+                            "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
+                        ";";
+                }
+                else {
+                    //don't grab transactions that come from a hidden account
+                    sqlQuery +=
+                        "JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[0] + " = " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + "\n" +
+                        "WHERE \n" +
+                        TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
+                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
+                    ";";
+                }
+
+                ARGUMENTS = new String[]{Integer.toString(userId),Integer.toString(accountId), startDay, endDay};
+
+                cursor = database.rawQuery(sqlQuery, ARGUMENTS);
+            }
+            else {
+                //grab all account transactions
+                if(displayHiddenFlag) {
+                    sqlQuery +=
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
+                    ";";
+                }
+                else {
+                    //don't grab transactions that come from a hidden account
+                    sqlQuery +=
+                        "JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[0] + " = " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + "\n" +
+                        "WHERE \n" +
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
+                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
+                    ";";
+                }
+                ARGUMENTS = new String[]{Integer.toString(userId), startDay, endDay};
+
+                cursor = database.rawQuery(sqlQuery, ARGUMENTS);
+            }
         }
+
+        Log.d("Start / End Date", startDay + " | " + endDay);
+        Log.d("SQL", sqlQuery);
 
         if(cursor != null) {
             cursor.moveToFirst();

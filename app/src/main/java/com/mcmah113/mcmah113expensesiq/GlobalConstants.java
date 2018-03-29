@@ -65,13 +65,13 @@ class GlobalConstants {
     };
 
     private static final String balanceReports[][] = {
-        {"Daily Expense", "Compare your income and expenses on a daily basis"}
+        {"Daily Balance", "Compare your income and expenses on a daily basis"}
     };
 
     private static final String transactionPeriods[] = {
         "All Time",
         "This Month",
-        "Past 7 Days",
+        "This Week",
         "Today"
     };
 
@@ -84,7 +84,7 @@ class GlobalConstants {
     }
 
     static String[] getLanguageArray() {
-        return  languageArray;
+        return languageArray;
     }
 
     static String[] getCurrencyArray() {

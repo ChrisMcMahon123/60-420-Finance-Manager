@@ -7,10 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class ReportsIncomeFragment extends Fragment {
+    public interface OnCompleteListener {
+        void onReportsSelection(Bundle callbackData);
+    }
+
     public ReportsIncomeFragment() {
 
     }
@@ -20,6 +22,7 @@ public class ReportsIncomeFragment extends Fragment {
     }
 
     public void onViewCreated(View view, Bundle bundle) {
+        final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
         final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getIncomeReports());
 
         //set up the listView properties
@@ -28,9 +31,21 @@ public class ReportsIncomeFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bundle args = new Bundle();
-                args.putString("accountId", "");
 
-                Toast.makeText(getContext(), "Income Report at " + position, Toast.LENGTH_SHORT).show();
+                if(position == 0) {
+                    //Expense by Category
+                    args.putString("report", "Income by Category");
+                }
+                else if(position == 1) {
+                    //Daily Expense
+                    args.putString("report", "Daily Income");
+                }
+                else if(position == 2) {
+                    //Monthly Expense
+                    args.putString("report", "Monthly Income");
+                }
+
+                onCompleteListener.onReportsSelection(args);
             }
         });
    }

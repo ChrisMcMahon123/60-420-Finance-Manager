@@ -29,7 +29,11 @@ public class Overview extends AppCompatActivity implements
                 DeleteDialogFragment.OnCompleteListener,
                 SettingsDialogFragment.OnCompleteListener,
                 TransactionsNewFragment.OnCompleteListener,
-                TransactionsTransferDialogFragment.OnCompleteListener {
+                TransactionsTransferDialogFragment.OnCompleteListener,
+                ReportsExpenseFragment.OnCompleteListener,
+                ReportsIncomeFragment.OnCompleteListener,
+                ReportsCashFlowFragment.OnCompleteListener,
+                ReportsBalanceFragment.OnCompleteListener {
 
     private static int userId;
     private static String username;
@@ -341,6 +345,28 @@ public class Overview extends AppCompatActivity implements
 
         if(inputManager != null) {
             inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+    }
+
+    //one of the reports was selected, lets find out which one and launch it
+    public void onReportsSelection(Bundle callbackData) {
+        switch (callbackData.getString("report")) {
+            case "Expense by Category":
+            case "Daily Expense":
+            case "Monthly Expense":
+                setFragment(new ReportsExpenseGraph(), callbackData.getString("report"),-1);
+                break;
+            case "Income by Category":
+            case "Daily Income":
+            case "Monthly Income":
+                setFragment(new ReportsIncomeGraph(), callbackData.getString("report"),-1);
+                break;
+            case "Income Vs Expense":
+                setFragment(new ReportsCashFlowGraph(), callbackData.getString("report"),-1);
+                break;
+            case "Daily Balance":
+                setFragment(new ReportsBalanceGraph(), callbackData.getString("report"),-1);
+                break;
         }
     }
 }
