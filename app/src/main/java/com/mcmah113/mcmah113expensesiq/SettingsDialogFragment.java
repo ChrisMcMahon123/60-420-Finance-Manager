@@ -68,7 +68,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
         //set default selected based on user settings
         for(int i = 0; i < currencyArray.length; i ++) {
-            if(userData.get("locale").equals(currencyArray[i])) {
+            if(currencyArray[i].contains(userData.get("locale"))) {
                 spinnerCurrency.setSelection(i);
                 break;
             }

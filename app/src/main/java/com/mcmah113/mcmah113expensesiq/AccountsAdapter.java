@@ -73,8 +73,10 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
                     textViewHidden.setVisibility(View.INVISIBLE);
                 }
 
+                account.setImageIcon(row.getContext());
+
                 final ImageView imageViewAccountIcon = row.findViewById(R.id.imageViewAccountIcon);
-                //imageViewAccountIcon.setImageBitmap(account.getIcon());
+                imageViewAccountIcon.setImageBitmap(account.getIcon());
             }
         }
 

@@ -2,6 +2,8 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -9,7 +11,11 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Login extends AppCompatActivity {
     private Toolbar toolbarCustom;
@@ -24,6 +30,16 @@ public class Login extends AppCompatActivity {
         //set toolbar properties
         toolbarCustom = findViewById(R.id.toolbarCustom);
         setSupportActionBar(toolbarCustom);
+        ImageView imageIcon = findViewById(R.id.imageViewLogo);
+
+        AssetManager assetManager = getAssets();
+        try {
+            InputStream inputStream = assetManager.open("wallpaper.jpg");
+            imageIcon.setImageBitmap(BitmapFactory.decodeStream(inputStream));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
         //set username / login editText properties
         final EditText editTextUsername = findViewById(R.id.editTextAccountName);

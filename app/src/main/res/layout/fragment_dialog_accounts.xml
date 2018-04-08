@@ -27,6 +27,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewTransactions"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/view_transaction_content_description"
@@ -51,6 +52,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewMakeATransfer"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/view_transactions_content_description"
@@ -75,6 +77,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewAddTransaction"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/add_transaction_content_description"
@@ -107,6 +110,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewEditAccount"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/edit_account_content_description"
@@ -131,6 +135,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewDeleteAccount"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/edit_account_content_description"
@@ -155,6 +160,7 @@
             android:padding="5dp">
 
             <ImageView
+                android:id="@+id/imageViewHideAccount"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:contentDescription="@string/hide_account_image_content_description"

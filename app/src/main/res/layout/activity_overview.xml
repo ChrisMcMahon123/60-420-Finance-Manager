@@ -60,7 +60,7 @@
                 android:padding="5dp"
                 android:text="@string/add_income_label"
                 android:textAlignment="center"
-                android:textColor="@android:color/background_light"
+                android:textColor="@android:color/black"
                 android:textSize="18sp" />
 
             <android.support.design.widget.FloatingActionButton
@@ -74,7 +74,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:src="@color/colorAccent"
-                app:backgroundTint="@android:color/holo_green_dark"
+                app:backgroundTint="@android:color/holo_green_light"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         </LinearLayout>
@@ -97,7 +97,7 @@
                 android:padding="5dp"
                 android:text="@string/add_expense_label"
                 android:textAlignment="center"
-                android:textColor="@android:color/background_light"
+                android:textColor="@android:color/black"
                 android:textSize="18sp" />
 
             <android.support.design.widget.FloatingActionButton
@@ -111,7 +111,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:src="@color/colorAccent"
-                app:backgroundTint="@android:color/holo_red_dark"
+                app:backgroundTint="@android:color/holo_red_light"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         </LinearLayout>

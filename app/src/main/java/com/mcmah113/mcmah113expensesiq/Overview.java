@@ -2,6 +2,9 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -22,11 +25,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class Overview extends AppCompatActivity implements
                 NavigationView.OnNavigationItemSelectedListener,
                 AccountsDialogFragment.OnCompleteListener,
                 AccountsEditFragment.OnCompleteListener,
-                OverviewFragment.OnCompleteListener,
+                OverviewAdapter.OnCompleteListener,
                 DeleteDialogFragment.OnCompleteListener,
                 SettingsDialogFragment.OnCompleteListener,
                 TransactionsNewFragment.OnCompleteListener,
@@ -76,7 +82,7 @@ public class Overview extends AppCompatActivity implements
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.navOverview);
 
-        //set the fab and their layout properties
+        //set the fab icons and their properties
         linearLayoutExpense = findViewById(R.id.layoutFabExpense);
         linearLayoutIncome = findViewById(R.id.layoutFabIncome);
 
@@ -115,6 +121,20 @@ public class Overview extends AppCompatActivity implements
                 onCompleteLaunchFragment(args);
             }
         });
+
+        final AssetManager assetManager = getAssets();
+        InputStream inputStream;
+
+        try {
+            inputStream = assetManager.open("account_send.png");
+            floatingActionButtonExpense.setImageBitmap(BitmapFactory.decodeStream(inputStream));
+
+            inputStream = assetManager.open("account_send.png");
+            floatingActionButtonIncome.setImageBitmap(BitmapFactory.decodeStream(inputStream));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
         fragmentManager = getSupportFragmentManager();
 
@@ -161,6 +181,43 @@ public class Overview extends AppCompatActivity implements
         //setting the menu textView, so have to wait until the menu is created
         final TextView textViewUsername = findViewById(R.id.textViewUsername);
         textViewUsername.setText(username);
+
+        Menu navMenu = navigationView.getMenu();
+        final LinearLayout linearLayout = findViewById(R.id.headerBackground);
+        final MenuItem menuItem1 = navMenu.findItem(R.id.navOverview);
+        final MenuItem menuItem2 = navMenu.findItem(R.id.navAccounts);
+        final MenuItem menuItem3 = navMenu.findItem(R.id.navTransactions);
+        final MenuItem menuItem4 = navMenu.findItem(R.id.navReports);
+
+        //setting the images for each of the menu options,
+        final AssetManager assetManager = getAssets();
+        InputStream inputStream;
+        BitmapDrawable bitmapDrawable;
+
+        try {
+            inputStream = assetManager.open("wallpaper.jpg");
+            bitmapDrawable = new BitmapDrawable(getResources(), inputStream);
+            linearLayout.setBackground(bitmapDrawable);
+
+            inputStream = assetManager.open("account_view.png");
+            bitmapDrawable = new BitmapDrawable(getResources(), inputStream);
+            menuItem1.setIcon(bitmapDrawable);
+
+            inputStream = assetManager.open("type_cash.png");
+            bitmapDrawable = new BitmapDrawable(getResources(), inputStream);
+            menuItem2.setIcon(bitmapDrawable);
+
+            inputStream = assetManager.open("account_send.png");
+            bitmapDrawable = new BitmapDrawable(getResources(), inputStream);
+            menuItem3.setIcon(bitmapDrawable);
+
+            inputStream = assetManager.open("reports_chart2.png");
+            bitmapDrawable = new BitmapDrawable(getResources(), inputStream);
+            menuItem4.setIcon(bitmapDrawable);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return true;
     }
@@ -267,6 +324,10 @@ public class Overview extends AppCompatActivity implements
         if(AccountsFragment.getAlertDialog() != null) {
             AccountsFragment.getAlertDialog().dismiss();
             AccountsFragment.setAlertDialog();
+        }
+        else if(OverviewAdapter.getAlertDialog() != null) {
+            OverviewAdapter.getAlertDialog().dismiss();
+            OverviewAdapter.setAlertDialog();
         }
 
         switch(tag) {

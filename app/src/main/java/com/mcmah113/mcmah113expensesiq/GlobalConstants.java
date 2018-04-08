@@ -46,7 +46,7 @@ class GlobalConstants {
         Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
     };
 
-    private static final String typesArray[] = {"Bank", "Cash"};
+    private static final String typesArray[] = {"Bank", "Cash", "Credit"};
 
     private static final String expenseReports[][] = {
         {"Expense by Category", "View all expenses sorted by category type"},

@@ -1,6 +1,12 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 class Account {
     private int id;
@@ -26,8 +32,8 @@ class Account {
         this.initialBalance = initialBalance;
         this.currentBalance = currentBalance;
         this.description = description;
-        this.imageIcon = setImageIcon();
         this.hiddenFlag = hiddenFlag;
+        this.imageIcon = null;
     }
 
     void setId(int id) {
@@ -46,9 +52,13 @@ class Account {
         this.locale = locale;
     }
 
-    void setSymbol(String symbol) {
+    //will never be used as the database never stores the currency symbol, only the locale
+    //account is only ever updated before a database call, where symbol is never used
+    //then on returning, a new database call is issued to get the updated info
+    //where the database will set the symbol based on the locale
+    /*void setSymbol(String symbol) {
         this.symbol = symbol;
-    }
+    }*/
 
     void setInitialBalance(double initialBalance) {
         this.initialBalance = initialBalance;
@@ -106,14 +116,34 @@ class Account {
         return imageIcon;
     }
 
-    private Bitmap setImageIcon() {
-        switch (type) {
-            case "Cash":
-                return null;
-            case "Bank":
-                return null;
-            default:
-                return null;
+    //must be called from outside, in order to get the context
+    void setImageIcon(Context context) {
+        AssetManager assetManager = context.getAssets();
+        InputStream inputStream;
+
+        try {
+            switch (type) {
+                case "Cash":
+                    inputStream = assetManager.open("type_cash.png");
+                    break;
+                case "Bank":
+                    inputStream = assetManager.open("type_bank.png");
+                    break;
+                case "Credit":
+                    inputStream = assetManager.open("type_credit.png");
+                    break;
+                case "Add":
+                    inputStream = assetManager.open("new_account.png");
+                    break;
+                default:
+                    inputStream = assetManager.open("default_image.png");
+            }
+
+            imageIcon = BitmapFactory.decodeStream(inputStream);
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            imageIcon = BitmapFactory.decodeResource(context.getResources(),R.color.colorGreen);
         }
     }
 }

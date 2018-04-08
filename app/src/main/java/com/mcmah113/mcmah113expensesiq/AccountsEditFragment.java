@@ -15,6 +15,7 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 public class AccountsEditFragment extends Fragment {
     private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
@@ -84,6 +85,17 @@ public class AccountsEditFragment extends Fragment {
         }
         else {
             //creating a new account
+            //get user settings to set account currency default
+            HashMap<String, String> userSettings = databaseHelper.getUserSettings(userId);
+
+            //set default selected based on account object
+            for(int i = 0; i < currencyArray.length; i ++) {
+                if(currencyArray[i].contains(userSettings.get("locale"))) {
+                    spinnerCurrency.setSelection(i);
+                    break;
+                }
+            }
+
             account = null;
         }
 
@@ -137,6 +149,7 @@ public class AccountsEditFragment extends Fragment {
                             account.setName(name);
                             account.setType(type);
                             account.setLocale(locale);
+                            //when locale changes, so does symbol
                             account.setInitialBalance(initialBalance);
                             account.setCurrentBalance(currentBalance);
                             account.setDescription(description);
