@@ -17,29 +17,29 @@ public class FixerCurrencyAPI extends AsyncTask<String, Void, HashMap<String, St
     protected HashMap<String, String> doInBackground(String... params) {
         //all currency conversions are in terms of EUR.
         //convert the two sent from the caller
-        String httpURL = "http://data.fixer.io/api/latest?access_key=";
+        //using a HashMap so order doesn't matter
+        StringBuilder httpURL = new StringBuilder("http://data.fixer.io/api/latest?access_key=");
         final String apiKey = "4f16c719030b8d758de15ddf4a9ca23f";
 
-        httpURL += apiKey;
-        httpURL += "&symbols=";
+        httpURL.append(apiKey);
+        httpURL.append("&symbols=");
 
-        //locale from is always 1.... for convenience
         for(int i = 0; i < params.length; i ++) {
             if(i == params.length -1) {
                 //last one or only one
-                httpURL += params[i];
+                httpURL.append(params[i]);
             }
             else {
-                httpURL += params[i] + ",";
+                httpURL.append(params[i]).append(",");
             }
         }
 
-        httpURL += "&format=1";
+        httpURL.append("&format=1");
 
-        Log.d("HTTP REQUEST", httpURL);
+        Log.d("HTTP REQUEST", httpURL.toString());
 
         try {
-            URL url = new URL(httpURL);
+            URL url = new URL(httpURL.toString());
 
             final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -64,7 +64,7 @@ public class FixerCurrencyAPI extends AsyncTask<String, Void, HashMap<String, St
         }
         catch(Exception exception) {
             Log.d("HTTP REQUEST FAILED", "Failed to make api request from data.fixer.io");
-            Log.d("HTTP REQUEST", httpURL);
+            Log.d("HTTP REQUEST", httpURL.toString());
             exception.printStackTrace();
             return null;
         }

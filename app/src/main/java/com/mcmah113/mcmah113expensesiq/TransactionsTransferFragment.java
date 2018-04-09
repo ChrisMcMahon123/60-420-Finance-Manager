@@ -143,7 +143,7 @@ public class TransactionsTransferFragment extends Fragment {
                                 args.putInt("accountToId", accountToId);
                                 args.putDouble("amount", amount);
                                 args.putDouble("exchangeRate", exchangeRate);
-                                args.putString("note", editTextNote.toString());
+                                args.putString("note", editTextNote.getText().toString());
 
                                 TransactionsTransferDialogFragment dialogFragment = new TransactionsTransferDialogFragment();
                                 dialogFragment.setArguments(args);

@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -43,8 +44,8 @@ public class TransactionsFragment extends Fragment {
 
         listViewTransactions = view.findViewById(R.id.listviewTransactions);
 
-        final ArrayAdapter<String> arrayAdapterAccount = new ArrayAdapter<>(getContext(), R.layout.layout_spinner, spinnerString);
-        final ArrayAdapter<String> arrayAdapterPeriod = new ArrayAdapter<>(getContext(), R.layout.layout_spinner, GlobalConstants.getTransactionPeriods());
+        final ArrayAdapter<String> arrayAdapterAccount = new ArrayAdapter<>(getContext(), R.layout.layout_spinner_alt_text, spinnerString);
+        final ArrayAdapter<String> arrayAdapterPeriod = new ArrayAdapter<>(getContext(), R.layout.layout_spinner_alt_text, GlobalConstants.getTransactionPeriods());
 
         final Spinner spinnerAccount = view.findViewById(R.id.spinnerAccount);
         final Spinner spinnerPeriod = view.findViewById(R.id.spinnerPeriod);
@@ -101,6 +102,7 @@ public class TransactionsFragment extends Fragment {
         updateTransactions(accountId, userId, 0);
     }
 
+    @SuppressLint("SimpleDateFormat")
     private void updateTransactions(int accountId, int userId, int positionOfSelected) {
         //show transaction histories for each account
         Calendar calendar = Calendar.getInstance();

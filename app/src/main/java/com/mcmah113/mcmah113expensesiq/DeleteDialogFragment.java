@@ -22,16 +22,18 @@ public class DeleteDialogFragment extends DialogFragment {
 
         final int accountId = getArguments().getInt("accountId");
         final String accountName = getArguments().getString("accountName");
+        final String callFrom = getArguments().getString("callFrom");
 
         final Bundle args = new Bundle();
 
         final AlertDialog.Builder deleteDialog = new AlertDialog.Builder(getActivity());
         deleteDialog.setTitle(getResources().getString(R.string.delete_account_dialog_option));
         deleteDialog.setMessage(getResources().getString(R.string.are_you_sure_dialog_option) + " " + accountName + "?");
-        deleteDialog.setPositiveButton(getResources().getString(R.string.save_dialog_option), new DialogInterface.OnClickListener() {
+        deleteDialog.setPositiveButton(getResources().getString(R.string.dialog_fragment_delete), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 args.putString("response", "Yes");
                 args.putInt("accountId", accountId);
+                args.putString("callFrom", callFrom);
                 onCompleteListener.onCompleteDeleteAccount(args);
             }
         });

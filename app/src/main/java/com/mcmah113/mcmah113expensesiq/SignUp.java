@@ -1,12 +1,11 @@
 package com.mcmah113.mcmah113expensesiq;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,7 +13,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 public class SignUp extends AppCompatActivity {
-    private Toolbar toolbarCustom;
     //array holds the different languages the user can select
     private static final String languageArray[] = GlobalConstants.getLanguageArray();
 
@@ -26,10 +24,13 @@ public class SignUp extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         //set toolbar properties
-        toolbarCustom = findViewById(R.id.toolbarCustom);
+        final Toolbar toolbarCustom = findViewById(R.id.toolbarCustom);
         setSupportActionBar(toolbarCustom);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
         //set edit text properties
         final EditText editTextBankAccount = findViewById(R.id.editTextBankBalance);
@@ -147,14 +148,13 @@ public class SignUp extends AppCompatActivity {
     }
 
     public void onBackPressed() {
-        hideKeyboard(toolbarCustom);
-    }
-
-    public void hideKeyboard(View view) {
-        InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        if(inputManager != null) {
-            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        if(this.getFragmentManager().getBackStackEntryCount() > 1) {
+            //hide the keyboard if its showing since it counts as a fragment surprisingly
+            this.getFragmentManager().popBackStack();
+        }
+        else {
+            //keyboard is not showing, go back to the previous activity (login)
+            NavUtils.navigateUpFromSameTask(this);
         }
     }
 }

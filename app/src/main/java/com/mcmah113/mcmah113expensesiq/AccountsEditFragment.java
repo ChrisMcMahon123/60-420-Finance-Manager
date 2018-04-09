@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -34,11 +35,13 @@ public class AccountsEditFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_accounts_edit, container, false);
     }
 
+    @SuppressLint({"ClickableViewAccessibility", "SetTextI18n"})
     public void onViewCreated(View view, Bundle bundle) {
         final DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
 
         final int userId = Overview.getUserId();
         final int accountId = getArguments().getInt("accountId");
+        final String callFrom = getArguments().getString("callFrom");
 
         final EditText editTextName = view.findViewById(R.id.editTextAccountName);
         final EditText editTextInitialBalance = view.findViewById(R.id.editTextAccountBalanceInitial);
@@ -124,6 +127,7 @@ public class AccountsEditFragment extends Fragment {
                         double currentBalance = Double.parseDouble(currentBalanceString);
 
                         if(accountId > 0) {
+                            //already existing account, updating it
                             //check for account changes
                             boolean editFlag = false;
                             String note = "";
@@ -159,7 +163,7 @@ public class AccountsEditFragment extends Fragment {
                                 //record the transaction in the table
                                 if(editFlag) {
                                     final Date currentTime = Calendar.getInstance().getTime();
-                                    String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+                                    @SuppressLint("SimpleDateFormat") String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
                                     Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), 0, date, note);
 
@@ -173,7 +177,7 @@ public class AccountsEditFragment extends Fragment {
                             }
                         }
                         else {
-                            //create a new account
+                            //no account id, which means we create a new account
                             if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, checkboxHiddenAccount.isChecked())) {
                                 Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
                             }
@@ -181,12 +185,13 @@ public class AccountsEditFragment extends Fragment {
                                 Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
                             }
                         }
+
                         final Bundle args = new Bundle();
                         args.putInt("accountId", -1);
-                        args.putString("fragment", "Accounts");
+                        args.putString("fragment", callFrom);
 
                         //return to the main activity which will redirect to Accounts fragment
-                        final AccountsEditFragment.OnCompleteListener onCompleteListener = (AccountsEditFragment.OnCompleteListener) getActivity();
+                        final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
                         onCompleteListener.onCompleteLaunchFragment(args);
                     }
                     catch(Exception exception) {

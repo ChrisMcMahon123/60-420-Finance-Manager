@@ -21,8 +21,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorPrimary"
-            android:theme="?attr/actionBarTheme"
-            app:title="@string/title_activity_overview" />
+            android:theme="@style/ToolBarWhiteStyle"
+            app:title="@string/title_activity_overview"
+            app:popupTheme="@style/MenuBackgroundColour"/>
 
         <LinearLayout
             android:id="@+id/fragmentLocation"

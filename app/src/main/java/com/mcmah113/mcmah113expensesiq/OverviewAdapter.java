@@ -27,7 +27,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.ViewHo
     OverviewAdapter(Account accountList[]) {
         this.accountsList.addAll(Arrays.asList(accountList));
 
-        final Account accountAdd = new Account(-1, "Add Account", "Add", "", "", -1, -1, "", false);
+        final Account accountAdd = new Account(-1, "Add", "Add", "", "", -1, -1, "", false);
         this.accountsList.add(this.accountsList.size(), accountAdd);
     }
 
@@ -47,7 +47,12 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Account account = accountsList.get(position);
 
-        holder.textView.setText(account.getName());
+        holder.textViewName.setText(account.getName());
+
+        if(!"Add".equals(account.getType())) {
+            holder.textViewAmount.setText(String.format(account.getSymbol() + "%.2f", account.getCurrentBalance()));
+        }
+
         holder.imageView.setImageBitmap(account.getIcon());
         holder.container.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
@@ -57,6 +62,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.ViewHo
                     //go to the new account creation fragment
                     args.putInt("accountId", -1);
                     args.putString("fragment", "New Account");
+                    args.putString("callFrom", "Overview");
 
                     final OnCompleteListener onCompleteListener = (OnCompleteListener) view.getContext();
                     onCompleteListener.onCompleteLaunchFragment(args);
@@ -64,6 +70,7 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.ViewHo
                 else {
                     //open the Account dialog like the Account fragment
                     args.putInt("accountId", account.getId());
+                    args.putString("callFrom", "Overview");
 
                     accountDialog = new AccountsDialogFragment();
                     accountDialog.setArguments(args);
@@ -79,24 +86,28 @@ public class OverviewAdapter extends RecyclerView.Adapter<OverviewAdapter.ViewHo
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView textView;
+        private TextView textViewName;
+        private TextView textViewAmount;
         private ImageView imageView;
         private LinearLayout container;
 
         ViewHolder(View itemView) {
             super(itemView);
 
-            textView = itemView.findViewById(R.id.textViewAccountName);
+            textViewName = itemView.findViewById(R.id.textViewAccountName);
+            textViewAmount = itemView.findViewById(R.id.textViewAmount);
             imageView = itemView.findViewById(R.id.imageViewAccountIcon);
             container = itemView.findViewById(R.id.ViewHolderContainer);
         }
     }
 
-    public static DialogFragment getAlertDialog() {
+    //since accountDialog doesn't use the Positive and Negative buttons
+    //that dismisses itself, need to dismiss it after the callback
+    static DialogFragment getAlertDialog() {
         return accountDialog;
     }
 
-    public static void setAlertDialog() {
+    static void setAlertDialog() {
         accountDialog = null;
     }
 }

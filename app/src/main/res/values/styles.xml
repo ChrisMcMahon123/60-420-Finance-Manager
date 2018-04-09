@@ -1,5 +1,4 @@
 <resources>
-
     <style name="AppTheme" parent="Theme.AppCompat.Light">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -16,4 +15,26 @@
     <style name="AppBarOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="ToolBarWhiteStyle" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+    </style>
+
+    <style name="MenuBackgroundColour">
+        <item name="android:colorBackground">@color/colorPrimary</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="SwitchTheme">
+        <!-- active thumb & track color (30% transparency) -->
+        <item name="colorControlActivated">@color/colorPrimaryDark</item>
+
+        <!-- inactive thumb color -->
+        <item name="colorSwitchThumbNormal">@color/colorAccent</item>
+
+        <!-- inactive track color (30% transparency) -->
+        <item name="android:colorForeground">@color/colorAccent</item>
+    </style>
 </resources>

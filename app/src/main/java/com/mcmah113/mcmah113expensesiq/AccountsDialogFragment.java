@@ -27,6 +27,7 @@ public class AccountsDialogFragment extends DialogFragment {
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         final int accountId = getArguments().getInt("accountId");
+        final String callFrom = getArguments().getString("callFrom");
 
         final AlertDialog.Builder accountDialog = new AlertDialog.Builder(getActivity());
 
@@ -71,42 +72,42 @@ public class AccountsDialogFragment extends DialogFragment {
         final LinearLayout buttonViewTransactions = view.findViewById(R.id.ViewTransactions);
         buttonViewTransactions.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("View Transactions", accountId);
+                callBack("View Transactions", accountId, callFrom);
             }
         });
 
         final LinearLayout buttonMakeATransaction = view.findViewById(R.id.MakeTransfer);
         buttonMakeATransaction.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("Make a Transfer", accountId);
+                callBack("Make a Transfer", accountId, callFrom);
             }
         });
 
         final LinearLayout buttonAddTransaction = view.findViewById(R.id.AddTransaction);
         buttonAddTransaction.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("Add Transaction", accountId);
+                callBack("Add Transaction", accountId, callFrom);
             }
         });
 
         final LinearLayout buttonEditAccount = view.findViewById(R.id.EditAccount);
         buttonEditAccount.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("Edit Account", accountId);
+                callBack("Edit Account", accountId, callFrom);
             }
         });
 
         final LinearLayout buttonDeleteAccount = view.findViewById(R.id.DeleteAccount);
         buttonDeleteAccount.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("Delete Account", accountId);
+                callBack("Delete Account", accountId, callFrom);
             }
         });
 
         final LinearLayout buttonHideAccount = view.findViewById(R.id.HideAccount);
         buttonHideAccount.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                callBack("Hide Account", accountId);
+                callBack("Hide Account", accountId, callFrom);
             }
         });
 
@@ -116,13 +117,15 @@ public class AccountsDialogFragment extends DialogFragment {
         return accountDialog.create();
     }
 
-    private void callBack(String selection, int accountId) {
+    private void callBack(String selection, int accountId, String callFrom) {
         final Bundle args = new Bundle();
         args.putInt("accountId", accountId);
         args.putString("fragment", selection);
+        args.putString("callFrom", callFrom);
 
         //call back to activity with option selection
-        //the activity will close the dialog
+        //the activity will close the dialog through the object.dismiss
+        //can't close / dismiss the dialog from inside the class
         final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
         onCompleteListener.onCompleteLaunchFragment(args);
     }

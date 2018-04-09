@@ -27,6 +27,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/account_transaction_label"
+                    android:textColor="@android:color/white"
                     android:textSize="18sp" />
 
                 <TextView
@@ -34,6 +35,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/period_label"
+                    android:textColor="@android:color/white"
                     android:textSize="18sp" />
 
 
@@ -48,14 +50,18 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:spinnerMode="dialog" />
+                    android:backgroundTint="@android:color/white"
+                    android:spinnerMode="dropdown"
+                    android:popupBackground="@color/colorPrimary" />
 
                 <Spinner
                     android:id="@+id/spinnerPeriod"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:spinnerMode="dialog" />
+                    android:backgroundTint="@android:color/white"
+                    android:spinnerMode="dropdown"
+                    android:popupBackground="@color/colorPrimary" />
             </LinearLayout>
         </LinearLayout>
 

@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -52,6 +53,7 @@ public class AccountsFragment extends Fragment {
                     //need to re-align the position, since listView(1) = accounts(2)
                     final Bundle args = new Bundle();
                     args.putInt("accountId", accounts[position-1].getId());
+                    args.putString("callFrom", "Accounts");
 
                     accountDialog = new AccountsDialogFragment();
                     accountDialog.setArguments(args);
@@ -90,6 +92,8 @@ public class AccountsFragment extends Fragment {
         }
 
         //convert HashMap to 2D string array
+        //[][0] is the locale of the currency
+        //[][1] is the currency symbol + the amount
         final String summary[][] = new String[hashMap.size()][2];
         String key;
 
@@ -107,6 +111,7 @@ public class AccountsFragment extends Fragment {
 
     //creates the listView header that will show the accounts overview
     //data like total currencies for all accounts and total accounts
+    @SuppressLint("SetTextI18n")
     public View createListHeader(String summary[][], Account[] accountList, HashMap<String, String> userData) {
         final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(24,5,24,5);
@@ -169,7 +174,7 @@ public class AccountsFragment extends Fragment {
         //will reference the locales using the HashMap for exchange
         //rates of the locales
         HashMap<String, String> hashMapData = new HashMap<>();
-        HashSet<String> hashSetLocales = new HashSet<>();
+        final HashSet<String> hashSetLocales = new HashSet<>();
         hashSetLocales.add(userData.get("locale"));
 
         for(Account account : accountList) {

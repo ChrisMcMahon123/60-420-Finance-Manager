@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -15,7 +16,7 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 111;
+    private static final int DATABASE_VERSION = 502;
 
     //table names
     private static final String TABLE_USERS = "Users";
@@ -201,12 +202,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 boolean bankFlag = createAccount(userId, "Bank","Bank",locale,bankBalance,bankBalance," ", false);
                 boolean cashFlag = createAccount(userId, "Cash","Cash",locale,cashBalance,cashBalance," ", false);
 
-                if(bankFlag && cashFlag) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
+                return bankFlag && cashFlag;
             }
         }
         catch(Exception exception) {
@@ -324,6 +320,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     Account[] getAccountList(int userId) {
         try {
             final ArrayList<Account> accountsList = new ArrayList<>();
@@ -379,14 +376,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 description = cursor.getString(cursor.getColumnIndex(COLUMNS_SELECTED[7]));
 
-                if(cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[8])) == 0) {
-                    //account is not hidden
-                    hiddenFlag = false;
-                }
-                else {
-                    //account is hidden
-                    hiddenFlag = true;
-                }
+                hiddenFlag = cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[8])) != 0;
 
                 accountsList.add(new Account(id, name, type, locale, symbol, initialBalance, currentBalance, description, hiddenFlag));
 
@@ -405,6 +395,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    //will return the account info as long as the id is valid, regardless if the account is hidden
+    @SuppressLint("DefaultLocale")
     Account getAccountInfo(int accountId, int userId) {
         try {
             final SQLiteDatabase database = this.getReadableDatabase();
@@ -413,54 +405,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             Cursor cursor;
 
-            if(displayHiddenFlag) {
-                //show hidden accounts
-                cursor = database.query(TABLE_ACCOUNTS, COLUMNS_ACCOUNTS, COLUMNS_ACCOUNTS[0] + " = ? AND " + COLUMNS_ACCOUNTS[1] + " = ?", ARGUMENTS, null, null, null, "1");
-            }
-            else {
-                //don't show hidden accounts
-                cursor = database.query(TABLE_ACCOUNTS, COLUMNS_ACCOUNTS, COLUMNS_ACCOUNTS[0] + " = ? AND " + COLUMNS_ACCOUNTS[1] + " = ? AND " + COLUMNS_ACCOUNTS[8] + " = 0", ARGUMENTS, null, null, null, "1");
-            }
+            cursor = database.query(TABLE_ACCOUNTS, COLUMNS_ACCOUNTS, COLUMNS_ACCOUNTS[0] + " = ? AND " + COLUMNS_ACCOUNTS[1] + " = ?", ARGUMENTS, null, null, null, "1");
 
             cursor.moveToFirst();
 
-            //get the account details from the database
-            final int id = cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[0]));
+            if(cursor.getCount() > 0) {
+                //get the account details from the database
+                final int id = cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[0]));
 
-            final String name = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[2]));
+                final String name = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[2]));
 
-            final String type = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[3]));
+                final String type = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[3]));
 
-            //only want the value inside the brackets (locale) not the country name
-            String locale = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[4]));
+                //only want the value inside the brackets (locale) not the country name
+                String locale = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[4]));
 
-            final String symbol = getLocaleCurrencySymbol(locale);
+                final String symbol = getLocaleCurrencySymbol(locale);
 
-            //get the amount as a string, only keep 2 decimal places
-            double initialBalance = cursor.getDouble((cursor.getColumnIndex(COLUMNS_ACCOUNTS[5])));
-            initialBalance = Double.parseDouble(String.format("%.2f", initialBalance));
+                //get the amount as a string, only keep 2 decimal places
+                double initialBalance = cursor.getDouble((cursor.getColumnIndex(COLUMNS_ACCOUNTS[5])));
+                initialBalance = Double.parseDouble(String.format("%.2f", initialBalance));
 
-            double currentBalance = cursor.getDouble((cursor.getColumnIndex(COLUMNS_ACCOUNTS[6])));
-            currentBalance = Double.parseDouble(String.format("%.2f", currentBalance));
+                double currentBalance = cursor.getDouble((cursor.getColumnIndex(COLUMNS_ACCOUNTS[6])));
+                currentBalance = Double.parseDouble(String.format("%.2f", currentBalance));
 
-            String description = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[7]));
+                String description = cursor.getString(cursor.getColumnIndex(COLUMNS_ACCOUNTS[7]));
 
-            boolean hiddenFlag;
+                boolean hiddenFlag = cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[8])) != 0;
 
-            if(cursor.getInt(cursor.getColumnIndex(COLUMNS_ACCOUNTS[8])) == 0) {
-                //account is not hidden
-                hiddenFlag = false;
+                cursor.close();
+                database.close();
+
+                return new Account(id, name, type, locale, symbol, initialBalance, currentBalance, description, hiddenFlag);
             }
             else {
-               //account is hidden
-                hiddenFlag = true;
+                return null;
             }
-
-            cursor.close();
-            database.close();
-
-            return new Account(id, name, type, locale, symbol, initialBalance, currentBalance, description, hiddenFlag);
-        }
+       }
         catch(Exception exception) {
             Log.d("getAccountInfo()","Attempt to get account info failed");
             exception.printStackTrace();
@@ -503,6 +484,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String ARGUMENTS[] = {Integer.toString(accountId), Integer.toString(userId)};
 
             databaseWrite.delete(TABLE_ACCOUNTS, COLUMNS_ACCOUNTS[0] + " = ? AND " + COLUMNS_ACCOUNTS[1] + " = ?", ARGUMENTS);
+
+            //also delete transactions for that account for AccountFromId
+            //want to keep transactions where accountTo, will replace those in checks
+            databaseWrite.delete(TABLE_TRANSACTIONS, COLUMNS_TRANSACTIONS[2] + " = ? AND " + COLUMNS_TRANSACTIONS[1] + " = ?", ARGUMENTS);
+
             databaseWrite.close();
 
             return true;
@@ -578,8 +564,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     sqlQuery +=
                         "WHERE \n" +
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
-                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
-                    ";";
+                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n";
                 }
                 else {
                     //don't grab transactions that come from a hidden account
@@ -588,9 +573,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "WHERE \n" +
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
                         "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
-                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
-                    ";";
+                        "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n";
                 }
+
+                sqlQuery += "ORDER BY " + COLUMNS_TRANSACTIONS[7] + " DESC;";
 
                 ARGUMENTS = new String[]{Integer.toString(userId),Integer.toString(accountId)};
 
@@ -601,8 +587,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if(displayHiddenFlag) {
                     sqlQuery +=
                         "WHERE \n" +
-                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
-                    ";";
+                            TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n";
                 }
                 else {
                     //don't grab transactions that come from a hidden account
@@ -610,9 +595,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[0] + " = " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + "\n" +
                         "WHERE \n" +
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
-                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
-                    ";";
+                        "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n";
                 }
+
+                sqlQuery += "ORDER BY " + COLUMNS_TRANSACTIONS[7] + " DESC;";
+
                 ARGUMENTS = new String[]{Integer.toString(userId)};
 
                 cursor = database.rawQuery(sqlQuery, ARGUMENTS);
@@ -629,8 +616,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
                             "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
                             "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
-                            "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
-                        ";";
+                            "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n";
                 }
                 else {
                     //don't grab transactions that come from a hidden account
@@ -641,9 +627,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
                         "AND " + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[2] + " = ? \n" +
                         "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
-                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
-                    ";";
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n";
                 }
+
+                sqlQuery += "ORDER BY " + COLUMNS_TRANSACTIONS[7] + " DESC;";
 
                 ARGUMENTS = new String[]{Integer.toString(userId),Integer.toString(accountId), startDay, endDay};
 
@@ -656,8 +643,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "WHERE \n" +
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
                         "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
-                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
-                    ";";
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n";
                 }
                 else {
                     //don't grab transactions that come from a hidden account
@@ -667,9 +653,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[1] + " = ? \n" +
                         "AND " + TABLE_ACCOUNTS + "." + COLUMNS_ACCOUNTS[8] + " = 0 \n" +
                         "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") >= DATETIME(?) \n" +
-                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n" +
-                    ";";
+                        "AND DATETIME(" + TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ") <= DATETIME(?) \n";
                 }
+
+                sqlQuery += "ORDER BY " + COLUMNS_TRANSACTIONS[7] + " DESC;";
+
                 ARGUMENTS = new String[]{Integer.toString(userId), startDay, endDay};
 
                 cursor = database.rawQuery(sqlQuery, ARGUMENTS);

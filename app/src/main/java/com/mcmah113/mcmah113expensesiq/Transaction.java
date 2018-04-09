@@ -1,8 +1,5 @@
 package com.mcmah113.mcmah113expensesiq;
 
-import java.util.Currency;
-import java.util.StringTokenizer;
-
 class Transaction {
     private int accountFromId;
     private int accountToId;
@@ -58,5 +55,5 @@ class Transaction {
         return note;
     }
 
-    //mo editing of the transactions allowed, read only
+    //no editing of the transactions allowed, read only
 }

@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.support.v4.app.DialogFragment;
@@ -68,7 +69,8 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
 
         //accountFrom
         final TextView textViewAccountFromName = view.findViewById(R.id.textViewAccountFromName);
-        textViewAccountFromName.setText(accountFrom.getName()  + " (" + accountFrom.getLocale() + ")");
+        final String accountFromName = accountFrom.getName()  + " (" + accountFrom.getLocale() + ")";
+        textViewAccountFromName.setText(accountFromName);
 
         final TextView textViewBeforeAccountFrom = view.findViewById(R.id.textViewBeforeAccountFrom);
         textViewBeforeAccountFrom.setText(String.format(accountFrom.getSymbol() + "%.2f", accountFrom.getCurrentBalance()));
@@ -78,7 +80,8 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
 
         //accountTo
         final TextView textViewAccountNameTo = view.findViewById(R.id.textViewAccountNameTo);
-        textViewAccountNameTo.setText(accountTo.getName() + " (" + accountTo.getLocale() + ")");
+        final String accountToName = accountTo.getName() + " (" + accountTo.getLocale() + ")";
+        textViewAccountNameTo.setText(accountToName);
 
         final TextView textViewBeforeAccountTo = view.findViewById(R.id.textViewBeforeAccountTo);
         textViewBeforeAccountTo.setText(String.format(accountTo.getSymbol() + "%.2f", accountTo.getCurrentBalance()));
@@ -100,7 +103,7 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
 
             //record the transaction in the table
             final Date currentTime = Calendar.getInstance().getTime();
-            final String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+            @SuppressLint("SimpleDateFormat") final String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
             Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"));
             Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"));

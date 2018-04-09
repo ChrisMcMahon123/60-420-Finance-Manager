@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -138,7 +139,7 @@ public class TransactionsNewFragment extends Fragment {
 
                         //record the transaction in the table
                         final Date currentTime = Calendar.getInstance().getTime();
-                        String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+                        @SuppressLint("SimpleDateFormat") String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
                         //accountTo will be -1, since this is income / expense
                         //transaction id is -1, since its new

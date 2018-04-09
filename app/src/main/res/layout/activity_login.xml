@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
-        android:theme="?attr/actionBarTheme"
+        android:theme="@style/ToolBarWhiteStyle"
         app:title="@string/login_activity_title" />
 
     <ScrollView
@@ -104,6 +104,7 @@
                         android:layout_weight="1"
                         android:background="@color/colorPrimary"
                         android:text="@string/login_button"
+                        android:textColor="@android:color/white"
                         android:textSize="18sp" />
 
                     <Button
@@ -112,8 +113,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="?attr/colorButtonNormal"
+                        android:background="@color/colorAccent"
                         android:text="@string/sign_up_button"
+                        android:textColor="@android:color/white"
                         android:textSize="18sp" />
                 </LinearLayout>
             </LinearLayout>
