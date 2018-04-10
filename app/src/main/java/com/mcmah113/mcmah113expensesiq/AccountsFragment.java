@@ -70,7 +70,6 @@ public class AccountsFragment extends Fragment {
         //if the currency is unique, add a new hash entry
         //if it isn't unique, add it to the existing total
         HashMap<String, Double> hashMap = new HashMap<>();
-        Double doubleObject;
         String locale;
         double balance;
 
@@ -80,14 +79,11 @@ public class AccountsFragment extends Fragment {
 
             if(hashMap.containsKey(locale)) {
                 //currency is not unique
-                doubleObject = hashMap.get(locale);
-                doubleObject += balance;
-                hashMap.put(locale, doubleObject);
+                hashMap.put(locale, (hashMap.get(locale) + balance));
             }
             else {
                 //currency is unique
-                doubleObject = balance;
-                hashMap.put(locale, doubleObject);
+                hashMap.put(locale, balance);
             }
         }
 
@@ -185,9 +181,10 @@ public class AccountsFragment extends Fragment {
         double currency2 = 1;
         boolean errorFlag;
 
-        //check to see if there is at least two different accounts
+        //check to see if there's more than 1 type, then convert OR
+        //if there's only 1, if its not the users locales
         //save an API call
-        if(hashSetLocales.size() > 1) {
+        if(hashSetLocales.size() > 1 || (hashSetLocales.size() == 1 && !hashSetLocales.contains(userData.get("locale")))) {
             try {
                 //API call to get all currency exchange rates
                 hashMapData = new FixerCurrencyAPI().execute(hashSetLocales.toArray(new String[hashSetLocales.size()])).get();

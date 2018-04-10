@@ -32,11 +32,11 @@ public class ReportsCashFlowFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bundle args = new Bundle();
                 args.putString("fragment","Cash Flow Graph");
-                args.putInt("accountId", -1);
 
                 if(position == 0) {
                     //Expense by Category
                     args.putString("report", "Income Vs Expense");
+                    args.putInt("accountId", -1);
                 }
 
                 onCompleteListener.onCompleteLaunchFragment(args);

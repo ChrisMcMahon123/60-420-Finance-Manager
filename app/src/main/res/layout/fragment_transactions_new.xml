@@ -182,6 +182,7 @@
                 android:layout_weight="1"
                 android:background="@color/colorPrimary"
                 android:text="@string/apply_label"
+                android:textColor="@android:color/white"
                 android:textSize="18sp" />
 
         </LinearLayout>

@@ -32,19 +32,21 @@ public class ReportsExpenseFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Bundle args = new Bundle();
                 args.putString("fragment","Expense Graph");
-                args.putInt("accountId", -1);
 
                 if(position == 0) {
                     //Expense by Category
                     args.putString("report", "Expense by Category");
+                    args.putInt("accountId", -1);
                 }
                 else if(position == 1) {
                     //Daily Expense
                     args.putString("report", "Daily Expense");
+                    args.putInt("accountId", -2);
                 }
                 else if(position == 2) {
                     //Monthly Expense
                     args.putString("report", "Monthly Expense");
+                    args.putInt("accountId", -3);
                 }
 
                 onCompleteListener.onCompleteLaunchFragment(args);

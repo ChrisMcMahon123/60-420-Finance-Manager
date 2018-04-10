@@ -38,7 +38,8 @@ public class Overview extends AppCompatActivity implements
                 ReportsExpenseFragment.OnCompleteListener,
                 ReportsIncomeFragment.OnCompleteListener,
                 ReportsCashFlowFragment.OnCompleteListener,
-                ReportsBalanceFragment.OnCompleteListener {
+                ReportsBalanceFragment.OnCompleteListener,
+                OverviewCustomizeDialogFragment.OnCompleteListener {
 
     private Toolbar toolbarCustom;
     private DrawerLayout drawerLayout;
@@ -239,7 +240,7 @@ public class Overview extends AppCompatActivity implements
             case R.id.menuOverviewCustomize:
                 //show the overview customize screen
                 //launch the settings dialog option
-                OverviewFragmentCustomize customizeDialog = new OverviewFragmentCustomize();
+                OverviewCustomizeDialogFragment customizeDialog = new OverviewCustomizeDialogFragment();
                 customizeDialog.show(getSupportFragmentManager(), "Customize Dialog");
                 return true;
             case R.id.menuLogout:
@@ -345,8 +346,8 @@ public class Overview extends AppCompatActivity implements
     //fragment is done its tasks
     public void onCompleteLaunchFragment(Bundle callback) {
         String tag = callback.getString("fragment");
-        int accountId = callback.getInt("accountId");
-        String report = callback.getString("report");
+        final int accountId = callback.getInt("accountId");
+        final String report = callback.getString("report");
 
         //close the dialog since a Pos / Neg button wasn't used
         //must close it from the object, can't do it from inside the class
@@ -425,48 +426,20 @@ public class Overview extends AppCompatActivity implements
                     setFragment(new ReportsFragment(), tag, accountId, "");
                     break;
                 case "Expense Graph":
-                    if(report != null) {
-                        switch(report) {
-                            case "Expense by Category":
-                                accountId = -1;
-                                break;
-                            case "Daily Expense":
-                                accountId = -2;
-                                break;
-                            case "Monthly Expense":
-                                accountId = -3;
-                                break;
-                        }
-                    }
-
                     navigationView.setCheckedItem(R.id.navReports);
-                    setFragment(new ReportsExpenseGraph(), report, accountId, "");
+                    setFragment(new ReportsGraphFragment(), report, accountId, "Expense");
                     break;
                 case "Income Graph":
-                    if(report != null) {
-                        switch (report) {
-                            case "Income by Category":
-                                accountId = -1;
-                                break;
-                            case "Daily Income":
-                                accountId = -2;
-                                break;
-                            case "Monthly Income":
-                                accountId = -3;
-                                break;
-                        }
-                    }
-
                     navigationView.setCheckedItem(R.id.navReports);
-                    setFragment(new ReportsIncomeGraph(), report, accountId, "");
+                    setFragment(new ReportsGraphFragment(), report, accountId, "Income");
                     break;
                 case "Cash Flow Graph":
                     navigationView.setCheckedItem(R.id.navReports);
-                    setFragment(new ReportsCashFlowGraph(), "Income Vs Expense",accountId, "");
+                    setFragment(new ReportsGraphFragment(), report, accountId, "Cash Flow");
                     break;
-                case "Balance Income":
+                case "Balance Graph":
                     navigationView.setCheckedItem(R.id.navReports);
-                    setFragment(new ReportsBalanceGraph(), "Daily Balance",accountId, "");
+                    setFragment(new ReportsGraphFragment(), report, accountId, "Balance");
                     break;
             }
         }
@@ -496,7 +469,7 @@ public class Overview extends AppCompatActivity implements
     }
 
     //reload the current fragment that is being displayed
-    public void onCompleteUserSettings() {
+    public void onCompleteSettingsChange() {
         fragmentManager.popBackStack();
         final FragmentManager.BackStackEntry backStackEntry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount()-1);
         currentTag = backStackEntry.getName();

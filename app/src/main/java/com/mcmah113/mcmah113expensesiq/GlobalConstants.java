@@ -75,16 +75,6 @@ class GlobalConstants {
         "Today"
     };
 
-    private static int reportsPosition = 0;
-
-    static int getReportsPosition() {
-        return reportsPosition;
-    }
-
-    static void setReportsPosition(int position) {
-        reportsPosition = position;
-    }
-
     static String[] getTransactionTypeList() {
         return transactionTypeList;
     }

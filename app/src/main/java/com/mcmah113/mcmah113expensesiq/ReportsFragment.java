@@ -22,7 +22,6 @@ public class ReportsFragment extends Fragment {
 
         final ViewPager viewPager = view.findViewById(R.id.container);
         viewPager.setAdapter(reportsPagerAdapter);
-        viewPager.setCurrentItem(GlobalConstants.getReportsPosition(), true);
 
         final TabLayout tabLayout = view.findViewById(R.id.tabs);
 

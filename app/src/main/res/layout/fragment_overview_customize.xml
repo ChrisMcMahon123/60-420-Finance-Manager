@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="10dp"
-    tools:context="com.mcmah113.mcmah113expensesiq.OverviewFragmentCustomize">
+    tools:context="com.mcmah113.mcmah113expensesiq.OverviewCustomizeDialogFragment">
 
     <Switch
         android:id="@+id/switchAccounts"

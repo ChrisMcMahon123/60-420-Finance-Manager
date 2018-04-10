@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 public class SettingsDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
-        void onCompleteUserSettings();
+        void onCompleteSettingsChange();
     }
 
     private static final String languageArray[] = GlobalConstants.getLanguageArray();
@@ -31,7 +31,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final SettingsDialogFragment.OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
+        final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
 
         final AlertDialog.Builder settingsDialog = new AlertDialog.Builder(getActivity());
 
@@ -84,7 +84,8 @@ public class SettingsDialogFragment extends DialogFragment {
                 //only want the code inside the brackets
                 locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
-                if(databaseHelper.setUserSettings(Overview.getUserId(), language, locale)) {
+                //update the user settings, flags dont get touched here, so return the same values
+                if(databaseHelper.setUserSettings(Overview.getUserId(), language, locale,userData.get("flag1"),userData.get("flag2"),userData.get("flag3"),userData.get("flag4"))) {
                     Toast.makeText(getContext(), "User Settings Updated", Toast.LENGTH_SHORT).show();
                 }
                 else {
@@ -93,12 +94,12 @@ public class SettingsDialogFragment extends DialogFragment {
 
                 //allow hidden accounts to be shown
                 DatabaseHelper.setDisplayHiddenFlag(checkBoxShowHidden.isChecked());
-                onCompleteListener.onCompleteUserSettings();
+                onCompleteListener.onCompleteSettingsChange();
             }
         });
         settingsDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                onCompleteListener.onCompleteUserSettings();
+                onCompleteListener.onCompleteSettingsChange();
             }
         });
 

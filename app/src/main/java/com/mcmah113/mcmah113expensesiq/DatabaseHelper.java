@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 502;
+    private static final int DATABASE_VERSION = 12345;
 
     //table names
     private static final String TABLE_USERS = "Users";
@@ -29,7 +29,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         "username",
         "password",
         "language",
-        "locale"
+        "locale",
+        "overview_customize_flag_accounts",
+        "overview_customize_flag_transactions",
+        "overview_customize_flag_report_1",
+        "overview_customize_flag_report_2"
     };
 
     private static final String COLUMNS_ACCOUNTS[] = {
@@ -72,7 +76,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMNS_USERS[1] + " TEXT,\n" +
                 COLUMNS_USERS[2] + " TEXT, \n" +
                 COLUMNS_USERS[3] + " TEXT, \n" +
-                COLUMNS_USERS[4] + " TEXT \n" +
+                COLUMNS_USERS[4] + " TEXT, \n" +
+                COLUMNS_USERS[5] + " INTEGER, \n" +
+                COLUMNS_USERS[6] + " INTEGER, \n" +
+                COLUMNS_USERS[7] + " INTEGER, \n" +
+                COLUMNS_USERS[8] + " INTEGER \n" +
             ");";
 
         String createAccountsTable =
@@ -184,7 +192,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             else {
                 //valid new username, make user account
-
                 SQLiteDatabase database = this.getWritableDatabase();
 
                 ContentValues VALUES = new ContentValues();
@@ -192,6 +199,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 VALUES.put(COLUMNS_USERS[2], password);
                 VALUES.put(COLUMNS_USERS[3], language);
                 VALUES.put(COLUMNS_USERS[4], locale);
+                //show all overview content by default
+                VALUES.put(COLUMNS_USERS[5], 1);
+                VALUES.put(COLUMNS_USERS[6], 1);
+                VALUES.put(COLUMNS_USERS[7], 1);
+                VALUES.put(COLUMNS_USERS[8], 1);
 
                 database.insert(TABLE_USERS, null, VALUES);
 
@@ -242,7 +254,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    boolean setUserSettings(int userId, String language, String locale) {
+    boolean setUserSettings(int userId, String language, String locale, String flag1, String flag2, String flag3, String flag4) {
         final SQLiteDatabase database = this.getWritableDatabase();
 
         final String ARGUMENTS[] = {Integer.toString(userId)};
@@ -250,6 +262,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         final ContentValues VALUES = new ContentValues();
         VALUES.put(COLUMNS_USERS[3], language);
         VALUES.put(COLUMNS_USERS[4], locale);
+        VALUES.put(COLUMNS_USERS[5], flag1);
+        VALUES.put(COLUMNS_USERS[6], flag2);
+        VALUES.put(COLUMNS_USERS[7], flag3);
+        VALUES.put(COLUMNS_USERS[8], flag4);
 
         database.update(TABLE_USERS, VALUES, COLUMNS_USERS[0] + " = ?", ARGUMENTS);
         database.close();
@@ -274,6 +290,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         userData.put("language",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[3])));
         userData.put("locale",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[4])));
         userData.put("symbol",getLocaleCurrencySymbol(userData.get("locale")));
+        userData.put("flag1",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[5])));
+        userData.put("flag2",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[6])));
+        userData.put("flag3",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[7])));
+        userData.put("flag4",cursor.getString(cursor.getColumnIndex(COLUMNS_USERS[8])));
 
         cursor.close();
         database.close();

@@ -31,11 +31,11 @@ public class ReportsBalanceFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bundle args = new Bundle();
-                args.putString("fragment","Balance");
-                args.putInt("accountId", -1);
+                args.putString("fragment","Balance Graph");
 
                 if(position == 0) {
                     args.putString("report", "Daily Balance");
+                    args.putInt("accountId", -1);
                 }
 
                 onCompleteListener.onCompleteLaunchFragment(args);

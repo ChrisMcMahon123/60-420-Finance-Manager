@@ -34,34 +34,66 @@ public class OverviewFragment extends Fragment {
 
         final int userId = Overview.getUserId();
 
-        final Account accountsList[] = databaseHelper.getAccountList(userId);
+        final HashMap<String, String> userData = databaseHelper.getUserSettings(Overview.getUserId());
 
-        //set up the My Accounts section of the overview
-        final OverviewAdapter recyclerAdapter = new OverviewAdapter(accountsList);
-        final RecyclerView recyclerView = view.findViewById(R.id.recyclerViewAccounts);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
-        recyclerView.setAdapter(recyclerAdapter);
+        if("1".equals(userData.get("flag1"))) {
+            final Account accountsList[] = databaseHelper.getAccountList(userId);
 
-        final TextView textViewNetBalance = view.findViewById(R.id.textViewNetBalance);
+            //set up the My Accounts section of the overview
+            final OverviewAdapter recyclerAdapter = new OverviewAdapter(accountsList);
+            final RecyclerView recyclerView = view.findViewById(R.id.recyclerViewAccounts);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+            recyclerView.setAdapter(recyclerAdapter);
 
-        String netBalanceString = view.getResources().getString(R.string.net_balance_string) + " ";
+            final TextView textViewNetBalance = view.findViewById(R.id.textViewNetBalance);
 
-        final String balance = getNetBalance(userId);
+            String netBalanceString = view.getResources().getString(R.string.net_balance_string) + " ";
 
-        if(!balance.isEmpty()) {
-            //got results back
-            netBalanceString += "(" + balance + ")";
-            textViewNetBalance.setText(netBalanceString);
+            final String balance = getNetBalance(userId);
+
+            if(!balance.isEmpty()) {
+                //got results back
+                netBalanceString += "(" + balance + ")";
+                textViewNetBalance.setText(netBalanceString);
+            }
+            else {
+                //no results, so don't show anything
+                textViewNetBalance.setText("");
+            }
         }
         else {
-            //no results, so don't show anything
-            textViewNetBalance.setText("");
+            //flag is false ("0"), so don't show / perform anything for that layout
+            //since we are hiding it
+            final LinearLayout linearLayoutAccounts = view.findViewById(R.id.linearLayoutOverviewAccounts);
+            linearLayoutAccounts.setVisibility(View.GONE);
         }
 
-        //set up the recent transactions of the overview
-        textViewNoTransactions = view.findViewById(R.id.textViewNoTransactions);
-        linearLayoutRecentTransactions = view.findViewById(R.id.linearLayoutRecentTransactions);
-        getRecentTransactionsSection(userId);
+        if("1".equals(userData.get("flag2"))) {
+            //set up the recent transactions of the overview
+            textViewNoTransactions = view.findViewById(R.id.textViewNoTransactions);
+            linearLayoutRecentTransactions = view.findViewById(R.id.linearLayoutRecentTransactions);
+            getRecentTransactionsSection(userId);
+        }
+        else {
+            final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutOverviewRecentTransactions);
+            linearLayoutTransactions.setVisibility(View.GONE);
+        }
+
+        if("1".equals(userData.get("flag3"))) {
+
+        }
+        else {
+            final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutExpensebyCategory);
+            linearLayoutTransactions.setVisibility(View.GONE);
+        }
+
+        if("1".equals(userData.get("flag4"))) {
+
+        }
+        else {
+            final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutIncomeExpense);
+            linearLayoutTransactions.setVisibility(View.GONE);
+        }
     }
 
     //creates a hash map to calculate the total amount that each currency
@@ -71,7 +103,6 @@ public class OverviewFragment extends Fragment {
         //if the currency is unique, add a new hash entry
         //if it isn't unique, add it to the existing total
         HashMap<String, Double> hashMap = new HashMap<>();
-        Double doubleObject;
         String locale;
         double balance;
 
@@ -81,14 +112,11 @@ public class OverviewFragment extends Fragment {
 
             if(hashMap.containsKey(locale)) {
                 //currency is not unique
-                doubleObject = hashMap.get(locale);
-                doubleObject += balance;
-                hashMap.put(locale, doubleObject);
+                hashMap.put(locale, (hashMap.get(locale) + balance));
             }
             else {
                 //currency is unique
-                doubleObject = balance;
-                hashMap.put(locale, doubleObject);
+                hashMap.put(locale, balance);
             }
         }
 
@@ -114,71 +142,58 @@ public class OverviewFragment extends Fragment {
         final Account accountList[] = databaseHelper.getAccountList(userId);
         final String summary[][] = getSummary(accountList);
 
-        if(summary.length != 0) {
-            if(summary.length > 1) {
-                //HashSet contains all of the account locales and
-                //will be sent to the api call
-                //will reference the locales using the HashMap for exchange
-                //rates of the locales
-                HashMap<String, String> hashMapData = new HashMap<>();
-                final HashSet<String> hashSetLocales = new HashSet<>();
-                hashSetLocales.add(userData.get("locale"));
+        if(summary.length > 0) {
+            //HashSet contains all of the account locales and
+            //will be sent to the api call
+            //will reference the locales using the HashMap for exchange
+            //rates of the locales
+            HashMap<String, String> hashMapData;
+            final HashSet<String> hashSetLocales = new HashSet<>();
+            hashSetLocales.add(userData.get("locale"));
 
-                for(Account account : accountList) {
-                    hashSetLocales.add(account.getLocale());
+            for(Account account : accountList) {
+                hashSetLocales.add(account.getLocale());
+            }
+
+            double totalMoneyAmount = 0.00;
+            double currency2;
+
+            //check to see if there's more than 1 type, then convert OR
+            //if there's only 1, if its not the users locales
+            //save an API call
+            if(hashSetLocales.size() > 1 ||(hashSetLocales.size() == 1 && !hashSetLocales.contains(userData.get("locale")))) {
+                try {
+                    //API call to get all currency exchange rates
+                    hashMapData = new FixerCurrencyAPI().execute(hashSetLocales.toArray(new String[hashSetLocales.size()])).get();
+
+                    currency2 = Double.parseDouble(hashMapData.get(userData.get("locale")));
                 }
-
-                double totalMoneyAmount = 0.00;
-                double currency2 = 1;
-                boolean errorFlag;
-
-                //check to see if there is at least two different accounts
-                //save an API call
-                if(hashSetLocales.size() > 1) {
-                    try {
-                        //API call to get all currency exchange rates
-                        hashMapData = new FixerCurrencyAPI().execute(hashSetLocales.toArray(new String[hashSetLocales.size()])).get();
-
-                        currency2 = Double.parseDouble(hashMapData.get(userData.get("locale")));
-
-                        errorFlag = false;
-                    }
-                    catch(Exception e) {
-                        //couldn't get conversions
-                        //don't show the max money entry in the header
-                        e.printStackTrace();
-                        errorFlag = true;
-                    }
-                }
-                else {
-                    //only one or no types of locales, no point in
-                    //reporting total locale currencies when there is only 1
-                    errorFlag = true;
-                }
-
-                if(!errorFlag) {
-                    //got results, find the net balance
-                    for(String[] data : summary) {
-                        //convert currency and add to total money
-                        double value = Double.parseDouble(data[1].substring(1));
-                        double currency1 = Double.parseDouble(hashMapData.get(data[0]));
-                        double exchangeRate = currency1 / currency2;
-                        totalMoneyAmount += (value / exchangeRate);
-                    }
-
-                    return String.format(userData.get("symbol") + "%.2f",totalMoneyAmount);
-                }
-                else {
-                    //the API wasn't able to get any exchange rates
+                catch(Exception e) {
+                    //couldn't get conversions
+                    //don't show the max money entry in the header
+                    e.printStackTrace();
                     return "";
                 }
             }
             else {
-                //return the only value, which is the total of the only currency
+                //only one or no types of locales, no point in
+                //reporting total locale currencies when there is only 1
                 return summary[0][1];
             }
+
+            //got results, find the net balance
+            for(String[] data : summary) {
+                //convert currency and add to total money
+                double value = Double.parseDouble(data[1].substring(1));
+                double currency1 = Double.parseDouble(hashMapData.get(data[0]));
+                double exchangeRate = currency1 / currency2;
+                totalMoneyAmount += (value / exchangeRate);
+            }
+
+            return String.format(userData.get("symbol") + "%.2f",totalMoneyAmount);
         }
         else {
+            //return the only value, which is the total of the only currency
             return "";
         }
     }
