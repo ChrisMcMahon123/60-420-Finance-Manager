@@ -31,7 +31,6 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,6 +159,7 @@ public class ReportsGraphFragment extends Fragment {
         @SuppressLint("SimpleDateFormat") final String today = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
         int monthInt;
+
         String date;
         String type;
         String locale;
@@ -215,8 +215,8 @@ public class ReportsGraphFragment extends Fragment {
                         break;
                     case -3:
                         //add all the months to the HashMap first
-                        for(int i = 0; i < monthsList.length; i ++) {
-                            hashMapAmount.put(monthsList[i], 0.0);
+                        for(String month: monthsList) {
+                            hashMapAmount.put(month, 0.0);
                         }
 
                         if(transactionList.length > 0) {
@@ -233,9 +233,9 @@ public class ReportsGraphFragment extends Fragment {
                                         totalAmount += exchangeAmount;
 
                                         //specifically looking at the month part of the string
+
                                         monthInt = Integer.parseInt(date.substring(date.indexOf('-') + 1, date.lastIndexOf('-'))) -1;
 
-                                        Log.d("month", "" + monthInt);
                                         if(hashMapAmount.containsKey(monthsList[monthInt])) {
                                             hashMapAmount.put(monthsList[monthInt], (hashMapAmount.get(monthsList[monthInt]) + exchangeAmount));
                                         }
@@ -247,7 +247,11 @@ public class ReportsGraphFragment extends Fragment {
                             }
 
                             if(hashMapAmount.size() > 0) {
-                                createBarChart(userData, hashMapAmount, totalAmount, Integer.parseInt(today.substring(today.indexOf('-') + 1, today.lastIndexOf('-'))));
+                                for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
+                                    Log.d(pair.getKey(), "" + pair.getValue());
+                                }
+
+                                createBarChart(userData, hashMapAmount, totalAmount, Integer.parseInt(today.substring(today.indexOf('-') + 1, today.lastIndexOf('-'))), "Expense");
                             }
                             else {
                                 displayNoTransactionsText();
@@ -303,8 +307,51 @@ public class ReportsGraphFragment extends Fragment {
 
                         break;
                     case -3:
+                        //add all the months to the HashMap first
+                        for(String month: monthsList) {
+                            hashMapAmount.put(month, 0.0);
+                        }
 
+                        if(transactionList.length > 0) {
+                            for (Transaction transaction : transactionList) {
+                                amount = transaction.getAmount();
+                                type = transaction.getType();
 
+                                if(amount > 0) {
+                                    if(transactionTypePosition == 0 || (transactionTypePosition > 0 && type.equals(GlobalConstants.getTransactionTypeList()[transactionTypePosition -1]))) {
+                                        date = transaction.getDate();
+                                        locale = transaction.getLocale();
+                                        exchangeAmount = currencyExchange(userData.get("locale"), locale, amount);
+
+                                        totalAmount += exchangeAmount;
+
+                                        //specifically looking at the month part of the string
+                                        monthInt = Integer.parseInt(date.substring(date.indexOf('-') + 1, date.lastIndexOf('-'))) -1;
+
+                                        if(hashMapAmount.containsKey(monthsList[monthInt])) {
+                                            hashMapAmount.put(monthsList[monthInt], (hashMapAmount.get(monthsList[monthInt]) + exchangeAmount));
+                                        }
+                                        else {
+                                            hashMapAmount.put(monthsList[monthInt], exchangeAmount);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(hashMapAmount.size() > 0) {
+                                for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
+                                    Log.d(pair.getKey(), "" + pair.getValue());
+                                }
+
+                                createBarChart(userData, hashMapAmount, totalAmount, Integer.parseInt(today.substring(today.indexOf('-') + 1, today.lastIndexOf('-'))), "Income");
+                            }
+                            else {
+                                displayNoTransactionsText();
+                            }
+                        }
+                        else {
+                            displayNoTransactionsText();
+                        }
                         break;
                 }
                 break;
@@ -428,14 +475,18 @@ public class ReportsGraphFragment extends Fragment {
         return Math.abs(amount / exchangeRate);
     }
 
-    public void createBarChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, int currentMonth) {
+    @SuppressLint("DefaultLocale")
+    public void createBarChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, int currentMonth, String incomeExpense) {
         final ArrayList<String> monthsList = new ArrayList<>();
         monthsList.addAll(Arrays.asList(GlobalConstants.getMonthsArray()));
 
         final List<BarEntry> entries = new ArrayList<>();
         final int colorPalette[] = GlobalConstants.getColorPalette();
 
+        Log.d("Month Size", "" + monthsList.size());
+
         for(int i = 0; i < monthsList.size(); i++) {
+            Log.d("Month" + i, monthsList.get(i));
             entries.add(new BarEntry(i, hashMapAmount.get(monthsList.get(i)).floatValue()));
         }
 
@@ -448,7 +499,6 @@ public class ReportsGraphFragment extends Fragment {
         set.setColors(colorPalette);
 
         BarData data = new BarData(set);
-        data.setBarWidth(1);
         data.setValueTextSize(18);
 
         BarChart barChart = new BarChart(getContext());
@@ -456,8 +506,15 @@ public class ReportsGraphFragment extends Fragment {
         barChart.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1500));
         barChart.setData(data);
         barChart.setFitBars(true);
+        barChart.setScaleEnabled(false);
+        barChart.setTouchEnabled(false);
 
         final XAxis xAxis = barChart.getXAxis();
+        xAxis.setTextSize(18);
+        xAxis.setLabelRotationAngle(270);
+        xAxis.setLabelCount(monthsList.size());
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setAxisMaximum(monthsList.size()-1);
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             public String getFormattedValue(float value, AxisBase axis) {
                 return monthsList.get((int) value);
@@ -474,6 +531,26 @@ public class ReportsGraphFragment extends Fragment {
         legend.setOrientation(Legend.LegendOrientation.VERTICAL);
         legend.setEnabled(false);
 
+
+        //set the average amount
+        String average = "";
+
+        if(incomeExpense.equals("Income")) {
+            //dealing with income
+            average = "Average monthly income is " + userData.get("symbol") + String.format("%.2f", totalAmount / currentMonth);
+        }
+        else if(incomeExpense.equals("Expense")) {
+            //dealing with expense
+            average = "Average monthly expense is " + userData.get("symbol") + String.format("%.2f", totalAmount / currentMonth);
+        }
+
+        TextView textViewTitle = new TextView(getContext());
+        textViewTitle.setText(average);
+        textViewTitle.setTextSize(22);
+        textViewTitle.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        textViewTitle.setPadding(15, 15, 15, 15);
+
+        linearLayoutGraphArea.addView(textViewTitle);
         linearLayoutGraphArea.addView(barChart);
     }
 
@@ -541,6 +618,7 @@ public class ReportsGraphFragment extends Fragment {
         pieChart.setCenterTextSize(18);
         pieChart.setDescription(description);
         pieChart.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1500));
+        pieChart.setTouchEnabled(false);
 
         linearLayoutGraphArea.addView(pieChart);
 

@@ -128,7 +128,7 @@ class GlobalConstants {
     private static final String incomeReports[][] = {
         {"Income by Category", "View all incomes sorted by category type"},
         {"Daily Income", "View the last seven days breakdown of your income by specific accounts"},
-        {"Monthly Expense", "View a month by month breakdown of your income by specific accounts"}
+        {"Monthly Income", "View a month by month breakdown of your income by specific accounts"}
     };
 
     private static final String cashFlowReports[][] = {
