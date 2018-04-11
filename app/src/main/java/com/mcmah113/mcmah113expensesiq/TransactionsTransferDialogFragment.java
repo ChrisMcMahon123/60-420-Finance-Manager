@@ -105,10 +105,10 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
             final Date currentTime = Calendar.getInstance().getTime();
             @SuppressLint("SimpleDateFormat") final String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
-            Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"));
-            Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"));
+            final Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"));
+            final Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"));
 
-            if(databaseHelper.createNewTransaction(transaction1, userId) && databaseHelper.createNewTransaction(transaction2, userId) ) {
+            if(databaseHelper.createNewTransaction(transaction1, userId) && databaseHelper.createNewTransaction(transaction2, userId)) {
                 Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();
             }
             else {

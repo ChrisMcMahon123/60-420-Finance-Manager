@@ -102,5 +102,6 @@
     <string name="account_hidden_text">\'Account Hidden\'</string>
     <string name="recent_transactions_text">Recent Transactions</string>
     <string name="no_transactions_found_text">No Transactions found</string>
+    <string name="legend_title">Legend</string>
 
 </resources>

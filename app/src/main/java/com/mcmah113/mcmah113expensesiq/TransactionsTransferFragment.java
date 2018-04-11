@@ -1,8 +1,8 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,9 +14,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 
 public class TransactionsTransferFragment extends Fragment {
@@ -169,6 +166,7 @@ public class TransactionsTransferFragment extends Fragment {
         });
     }
 
+    @SuppressLint("DefaultLocale")
     public void updateExchangeRate(String spinnerFrom, String spinnerTo) {
         if(!spinnerFrom.isEmpty() && !spinnerTo.isEmpty()) {
             //only want the locale for the two bank accounts
@@ -177,34 +175,23 @@ public class TransactionsTransferFragment extends Fragment {
             String refreshDate;
             String rateString;
 
-            if(!localeFrom.equals(localeTo)) {
-                try {
-                    //make the API request to get the information
-                    HashMap<String, String> dataAPI = new FixerCurrencyAPI().execute(localeFrom, localeTo).get();
+            if(!GlobalConstants.getCurrencyExchangeFallBack()) {
+                //make the API request to get the information
+                HashMap<String, String> dataAPI = GlobalConstants.getHashMapExchangeRates();
 
-                    refreshDate = "Refreshed on " + dataAPI.get("Date");
-                    //rates are in EUR, common base, division to find
-                    //cross currency ratio
-                    final double currency1 = Double.parseDouble(dataAPI.get(localeFrom));
-                    final double currency2 = Double.parseDouble(dataAPI.get(localeTo));
-                    exchangeRate = currency1 / currency2;
+                //rates are in EUR, common base, division to find
+                //cross currency ratio
+                final double currency1 = Double.parseDouble(dataAPI.get(localeFrom));
+                final double currency2 = Double.parseDouble(dataAPI.get(localeTo));
+                exchangeRate = currency1 / currency2;
 
-                    rateString = String.format("%.2f", exchangeRate) + " " + localeFrom + " = 1.00 " + localeTo;
-                } catch (Exception exception) {
-                    Log.d("Failed", "Couldn't get currency rate");
-                    exception.printStackTrace();
-                    exchangeRate = 1.00;
-                    rateString = "Fixer API is unavailable, assuming 1:1 Ratio";
-                    refreshDate = "Unavailable";
-                }
+                refreshDate = "Refreshed on " + dataAPI.get("Date");
+                rateString = String.format("%.2f", exchangeRate) + " " + localeFrom + " = 1.00 " + localeTo;
             }
             else {
-                //save an API call and speed the program
-                //same format as the API call
-                rateString = "1.00 " + localeFrom + " = 1.00 " + localeTo;
                 exchangeRate = 1.00;
-                final Date currentTime = Calendar.getInstance().getTime();
-                refreshDate = "Refreshed on " + new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+                rateString = "Fixer API is unavailable, assuming 1:1 Ratio";
+                refreshDate = "Unavailable";
             }
 
             textViewRate.setText(rateString);

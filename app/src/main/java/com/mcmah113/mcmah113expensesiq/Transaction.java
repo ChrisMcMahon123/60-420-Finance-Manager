@@ -55,5 +55,5 @@ class Transaction {
         return note;
     }
 
-    //no editing of the transactions allowed, read only
+    //no editing of the transactions allowed, read only, no set methods
 }

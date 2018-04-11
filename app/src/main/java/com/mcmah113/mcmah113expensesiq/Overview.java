@@ -25,21 +25,22 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 public class Overview extends AppCompatActivity implements
-                NavigationView.OnNavigationItemSelectedListener,
-                AccountsDialogFragment.OnCompleteListener,
-                AccountsEditFragment.OnCompleteListener,
-                OverviewAdapter.OnCompleteListener,
-                DeleteDialogFragment.OnCompleteListener,
-                SettingsDialogFragment.OnCompleteListener,
-                TransactionsNewFragment.OnCompleteListener,
-                TransactionsTransferDialogFragment.OnCompleteListener,
-                ReportsExpenseFragment.OnCompleteListener,
-                ReportsIncomeFragment.OnCompleteListener,
-                ReportsCashFlowFragment.OnCompleteListener,
-                ReportsBalanceFragment.OnCompleteListener,
-                OverviewCustomizeDialogFragment.OnCompleteListener {
+        NavigationView.OnNavigationItemSelectedListener,
+        AccountsDialogFragment.OnCompleteListener,
+        AccountsEditFragment.OnCompleteListener,
+        OverviewAdapter.OnCompleteListener,
+        DeleteDialogFragment.OnCompleteListener,
+        SettingsDialogFragment.OnCompleteListener,
+        TransactionsNewFragment.OnCompleteListener,
+        TransactionsTransferDialogFragment.OnCompleteListener,
+        ReportsExpenseFragment.OnCompleteListener,
+        ReportsIncomeFragment.OnCompleteListener,
+        ReportsCashFlowFragment.OnCompleteListener,
+        ReportsBalanceFragment.OnCompleteListener,
+        OverviewCustomizeDialogFragment.OnCompleteListener {
 
     private Toolbar toolbarCustom;
     private DrawerLayout drawerLayout;
@@ -139,6 +140,41 @@ public class Overview extends AppCompatActivity implements
         }
 
         fragmentManager = getSupportFragmentManager();
+
+        //call Fixer.io API once, when logging in, don't need
+        //to get exchange rates every few minutes
+        try {
+            GlobalConstants.setHashMapExchangeRates(new FixerCurrencyAPI().execute(GlobalConstants.getLocaleArray()).get());
+            GlobalConstants.setCurrencyExchangeFallBack(false);
+
+            if(GlobalConstants.getHashMapExchangeRates() == null) {
+                final HashMap<String, String> hashMapFallBack = new HashMap<>();
+
+                for(String locale : GlobalConstants.getLocaleArray()) {
+                    hashMapFallBack.put(locale, "1.00");
+                }
+
+                GlobalConstants.setHashMapExchangeRates(hashMapFallBack);
+                GlobalConstants.setCurrencyExchangeFallBack(true);
+
+                Toast.makeText(this, "Failed to get Exchange Rates\nDefaulting to 1:1 for all exchanges", Toast.LENGTH_LONG).show();
+            }
+        }
+        catch (Exception exception) {
+            //couldn't get currency exchange rates,
+            //default to 1 for everything to fail gracefully
+            exception.printStackTrace();
+
+            final HashMap<String, String> hashMapFallBack = new HashMap<>();
+
+            for(String locale : GlobalConstants.getLocaleArray()) {
+                hashMapFallBack.put(locale, "1.00");
+            }
+
+            GlobalConstants.setHashMapExchangeRates(hashMapFallBack);
+            GlobalConstants.setCurrencyExchangeFallBack(true);
+            Toast.makeText(this, "Failed to get Exchange Rates\nDefaulting to 1:1 for all exchanges", Toast.LENGTH_LONG).show();
+        }
     }
 
     public void onBackPressed() {

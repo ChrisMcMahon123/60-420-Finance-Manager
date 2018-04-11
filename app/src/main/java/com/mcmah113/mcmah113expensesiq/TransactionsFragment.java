@@ -17,6 +17,7 @@ import java.util.Calendar;
 public class TransactionsFragment extends Fragment {
     private DatabaseHelper databaseHelper;
     private ListView listViewTransactions;
+
     private int accountId;
 
     public TransactionsFragment() {
@@ -62,7 +63,7 @@ public class TransactionsFragment extends Fragment {
                     accountId = accountsList[position-1].getId();
                 }
 
-                updateTransactions(accountId, userId, spinnerPeriod.getSelectedItemPosition());
+                updateTransactions(userId, accountId, spinnerPeriod.getSelectedItemPosition());
             }
 
             public void onNothingSelected(AdapterView<?> parent) {
@@ -73,7 +74,7 @@ public class TransactionsFragment extends Fragment {
         spinnerPeriod.setAdapter(arrayAdapterPeriod);
         spinnerPeriod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateTransactions(accountId, userId, spinnerPeriod.getSelectedItemPosition());
+                updateTransactions(userId, accountId, spinnerPeriod.getSelectedItemPosition());
             }
 
             public void onNothingSelected(AdapterView<?> parent) {
@@ -81,29 +82,32 @@ public class TransactionsFragment extends Fragment {
             }
         });
 
+
         if(getArguments() != null) {
             //coming from accounts, set the selected account as the default
             accountId = getArguments().getInt("accountId");
 
-            //setting the default selection as the accountId passed in
-            //accountsList and spinnerString[] have the same indexes
-            for(int i = 0; i < accountsList.length; i ++) {
-                if(accountId == accountsList[i].getId()) {
-                    spinnerAccount.setSelection(i);
-                    break;
+            if(accountId > 0) {
+                //setting the default selection, off by one with 'All Accounts' being at 0
+                for(int i = 0; i < accountsList.length; i ++) {
+                    if(accountId == accountsList[i].getId()) {
+                        spinnerAccount.setSelection(i+1);
+                        break;
+                    }
                 }
             }
         }
         else {
             //no Id passed in, therefore set it to the first id in the list
             accountId = -1;
+            spinnerAccount.setSelection(0);
         }
 
-        updateTransactions(accountId, userId, 0);
+        updateTransactions(userId, accountId, 0);
     }
 
     @SuppressLint("SimpleDateFormat")
-    private void updateTransactions(int accountId, int userId, int positionOfSelected) {
+    private void updateTransactions(int userId, int accountId, int positionOfSelected) {
         //show transaction histories for each account
         Calendar calendar = Calendar.getInstance();
         Calendar start;
@@ -147,7 +151,8 @@ public class TransactionsFragment extends Fragment {
                 break;
         }
 
-        TransactionsAdapter transactionsAdapter = new TransactionsAdapter(getContext(), databaseHelper.getTransactionsRange(accountId, userId, startDay, endDay));
+        Transaction transactionList[] = databaseHelper.getTransactionsRange(accountId, userId, startDay, endDay);
+        final TransactionsAdapter transactionsAdapter = new TransactionsAdapter(getContext(), transactionList);
         listViewTransactions.setAdapter(transactionsAdapter);
     }
 }

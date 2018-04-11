@@ -117,15 +117,12 @@
                 android:id="@+id/editTextCash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/colorPrimary"
                 android:contentDescription="@string/cash_label"
                 android:ems="10"
                 android:hint="@string/optional_hint"
                 android:inputType="numberSigned|numberDecimal"
                 android:singleLine="true"
-                android:theme="@style/CustomEditTextTheme"
-                tools:layout_editor_absoluteX="0dp"
-                tools:layout_editor_absoluteY="290dp" />
+                android:theme="@style/CustomEditTextTheme" />
 
             <Space
                 android:layout_width="match_parent"
@@ -163,14 +160,11 @@
                 android:id="@+id/editTextPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/colorPrimary"
                 android:contentDescription="@string/password_sign_up_label"
                 android:ems="10"
                 android:inputType="textPassword"
                 android:singleLine="true"
-                android:theme="@style/CustomEditTextTheme"
-                tools:layout_editor_absoluteX="0dp"
-                tools:layout_editor_absoluteY="290dp" />
+                android:theme="@style/CustomEditTextTheme" />
 
             <Space
                 android:layout_width="match_parent"
@@ -187,14 +181,11 @@
                 android:id="@+id/editTextPasswordConfirm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/colorPrimary"
                 android:contentDescription="@string/confirm_password_label"
                 android:ems="10"
                 android:inputType="textPassword"
                 android:singleLine="true"
-                android:theme="@style/CustomEditTextTheme"
-                tools:layout_editor_absoluteX="0dp"
-                tools:layout_editor_absoluteY="290dp" />
+                android:theme="@style/CustomEditTextTheme" />
 
             <Space
                 android:layout_width="match_parent"

@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 12345;
+    private static final int DATABASE_VERSION = 501;
 
     //table names
     private static final String TABLE_USERS = "Users";
@@ -314,8 +314,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             VALUES.put(COLUMNS_ACCOUNTS[6], currentBalance);
             VALUES.put(COLUMNS_ACCOUNTS[7], description);
 
-            Log.d("description", description);
-
             int hiddenValue;
 
             if(hidden) {
@@ -561,7 +559,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor;
         String ARGUMENTS[];
-        Transaction transaction[] = new Transaction[0];
+        ArrayList<Transaction> transactionList = new ArrayList<>();
 
         String sqlQuery =
             "SELECT \n" +
@@ -684,44 +682,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
 
-        Log.d("Start / End Date", startDay + " | " + endDay);
-        Log.d("SQL", sqlQuery);
+        cursor.moveToFirst();
 
-        if(cursor != null) {
-            cursor.moveToFirst();
+        int accountFromId;
+        int accountToId;
+        String type;
+        String locale;
+        String symbol;
+        double amount;
+        String date;
+        String note;
 
-            transaction = new Transaction[cursor.getCount()];
+        for(int i = 0; i < cursor.getCount(); i ++) {
+            accountFromId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[2]));
+            accountToId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[3]));
+            type = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[4]));
+            locale = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[5]));
+            symbol = getLocaleCurrencySymbol(locale);
+            amount = cursor.getDouble(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[6]));
+            date = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[7]));
+            note = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[8]));
 
-            int accountFromId;
-            int accountToId;
-            String type;
-            String locale;
-            String symbol;
-            double amount;
-            String date;
-            String note;
+            transactionList.add(new Transaction(accountFromId,accountToId,type,locale,symbol,amount,date,note));
 
-            for(int i = 0; i < cursor.getCount(); i ++) {
-                accountFromId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[2]));
-                accountToId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[3]));
-                type = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[4]));
-                locale = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[5]));
-                symbol = getLocaleCurrencySymbol(locale);
-                amount = cursor.getDouble(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[6]));
-                date = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[7]));
-                note = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[8]));
-
-                transaction[i] = new Transaction(accountFromId,accountToId,type,locale,symbol,amount,date,note);
-
-                cursor.moveToNext();
-            }
-
-            cursor.close();
+            cursor.moveToNext();
         }
 
+        cursor.close();
         database.close();
 
-        return transaction;
+        return transactionList.toArray(new Transaction[transactionList.size()]);
     }
 
     private String getLocaleCurrencySymbol(String locale) {

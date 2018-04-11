@@ -123,8 +123,6 @@ public class AccountsFragment extends Fragment {
         textViewTitle.setText(overview);
         textViewTitle.setTextSize(24);
 
-        //loop through all the currencies and add them to the layout
-
         //number of accounts
         final String total = getString(R.string.numberofAccounts_text);
         final TextView textViewTotal = new TextView(getContext());
@@ -146,73 +144,53 @@ public class AccountsFragment extends Fragment {
         verticalLayout.addView(textViewTitle);
         verticalLayout.addView(horizontalLayout);
 
-        //total amount of currency
-        final String totalMoney = getString(R.string.totalAmountofMoney_text) + " (" + userData.get("locale") + ")";
-        final TextView textCurrencyTotalAmount = new TextView(getContext());
-        textCurrencyTotalAmount.setText(totalMoney);
-        textCurrencyTotalAmount.setTextSize(18);
-        textCurrencyTotalAmount.setLayoutParams((new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)));
-        textCurrencyTotalAmount.setGravity(Gravity.START);
-
-        final TextView textViewTotalAmountValue = new TextView(getContext());
-        //will set text value at the very end when total is calculated
-        textViewTotalAmountValue.setTextSize(18);
-        textViewTotalAmountValue.setLayoutParams((new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)));
-        textViewTotalAmountValue.setGravity(Gravity.END);
-
-        horizontalLayout = new LinearLayout(getContext());
-        horizontalLayout.setPadding(0,0,0,10);
-        horizontalLayout.addView(textCurrencyTotalAmount);
-        horizontalLayout.addView(textViewTotalAmountValue);
-
-        //HashSet contains all of the account locales and
-        //will be sent to the api call
-        //will reference the locales using the HashMap for exchange
-        //rates of the locales
-        HashMap<String, String> hashMapData = new HashMap<>();
-        final HashSet<String> hashSetLocales = new HashSet<>();
-        hashSetLocales.add(userData.get("locale"));
+        //determine if the total currencies needs to be shown
+        final HashSet<String> hashSetUniqueCurrencies = new HashSet<>();
 
         for(Account account : accountList) {
-            hashSetLocales.add(account.getLocale());
+            hashSetUniqueCurrencies.add(account.getLocale());
         }
 
+        final TextView textViewTotalAmountValue = new TextView(getContext());
+
+        if( (   hashSetUniqueCurrencies.size() > 1 ||
+               (hashSetUniqueCurrencies.size() == 1 && !hashSetUniqueCurrencies.contains(userData.get("locale")))
+            ) && !GlobalConstants.getCurrencyExchangeFallBack()
+          ) {
+            //add the total amount to the header
+            //calculate the total currency amount below
+            //total amount of currency
+            final String totalMoney = getString(R.string.totalAmountofMoney_text) + " (" + userData.get("locale") + ")";
+            final TextView textCurrencyTotalAmount = new TextView(getContext());
+            textCurrencyTotalAmount.setText(totalMoney);
+            textCurrencyTotalAmount.setTextSize(18);
+            textCurrencyTotalAmount.setLayoutParams((new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)));
+            textCurrencyTotalAmount.setGravity(Gravity.START);
+
+            //will set text value at the very end when total is calculated
+            textViewTotalAmountValue.setTextSize(18);
+            textViewTotalAmountValue.setLayoutParams((new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)));
+            textViewTotalAmountValue.setGravity(Gravity.END);
+
+            horizontalLayout = new LinearLayout(getContext());
+            horizontalLayout.setPadding(0,0,0,10);
+            horizontalLayout.addView(textCurrencyTotalAmount);
+            horizontalLayout.addView(textViewTotalAmountValue);
+
+            verticalLayout.addView(horizontalLayout);
+        }
+
+        //calculate the total net balance for each currency and total amount of money for all currencies
+        final HashMap<String, String> hashMapData = GlobalConstants.getHashMapExchangeRates();
+
+        final double currency2 = Double.parseDouble(hashMapData.get(userData.get("locale")));
         double totalMoneyAmount = 0.00;
-        double currency2 = 1;
-        boolean errorFlag;
-
-        //check to see if there's more than 1 type, then convert OR
-        //if there's only 1, if its not the users locales
-        //save an API call
-        if(hashSetLocales.size() > 1 || (hashSetLocales.size() == 1 && !hashSetLocales.contains(userData.get("locale")))) {
-            try {
-                //API call to get all currency exchange rates
-                hashMapData = new FixerCurrencyAPI().execute(hashSetLocales.toArray(new String[hashSetLocales.size()])).get();
-
-                currency2 = Double.parseDouble(hashMapData.get(userData.get("locale")));
-
-                verticalLayout.addView(horizontalLayout);
-
-                errorFlag = false;
-            }
-            catch(Exception e) {
-                //couldn't get conversions
-                //don't show the max money entry in the header
-                e.printStackTrace();
-                errorFlag = true;
-            }
-        }
-        else {
-            //only one or no types of locales, no point in
-            //reporting total locale currencies when there is only 1
-            errorFlag = true;
-        }
 
         TextView textViewCurrency;
         TextView textViewAmount;
         String textCurrency;
 
-        for(String[] data : summary) {
+        for (String[] data : summary) {
             horizontalLayout = new LinearLayout(getContext());
             horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
             horizontalLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -234,17 +212,14 @@ public class AccountsFragment extends Fragment {
             horizontalLayout.addView(textViewAmount);
             verticalLayout.addView(horizontalLayout);
 
-            if(!errorFlag) {
-                //convert currency and add to total money
-                double value = Double.parseDouble(data[1].substring(1));
-                double currency1 = Double.parseDouble(hashMapData.get(data[0]));
-                double exchangeRate = currency1 / currency2;
-                totalMoneyAmount += (value / exchangeRate);
-            }
+            //convert currency and add to total money
+            double value = Double.parseDouble(data[1].substring(1));
+            double currency1 = Double.parseDouble(hashMapData.get(data[0]));
+            double exchangeRate = currency1 / currency2;
+            totalMoneyAmount += (value / exchangeRate);
         }
 
         //set the text of the total currency
-        //will not show up if the exchange rates weren't retrieved
         textViewTotalAmountValue.setText(String.format(userData.get("symbol") + "%.2f", totalMoneyAmount));
 
         return verticalLayout;
