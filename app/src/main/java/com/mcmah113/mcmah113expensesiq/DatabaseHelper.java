@@ -8,7 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -16,13 +18,13 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 501;
+    private static final int DATABASE_VERSION = 120;
 
     //table names
     private static final String TABLE_USERS = "Users";
     private static final String TABLE_ACCOUNTS = "Accounts";
     private static final String TABLE_TRANSACTIONS = "Transactions";
-
+    private static final String TABLE_EXCHANGE_RATES = "ExchangeRates";
     //tables columns
     private static final String COLUMNS_USERS[] = {
         "user_id",
@@ -60,6 +62,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         "note"
     };
 
+    private static final String COLUMNS_EXCHANGE_RATES[] = {
+        "exchange_id",
+        "locale",
+        "exchange_rate",
+        "refresh_date",
+        "default_flag"
+    };
+
     //determines either to query for hidden accounts
     private static boolean displayHiddenFlag = false;
 
@@ -68,6 +78,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    @SuppressLint("SimpleDateFormat")
     public void onCreate(SQLiteDatabase database) {
         //building the sql queries that will create the tables
         String createUsersTable =
@@ -113,14 +124,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "REFERENCES " + TABLE_USERS + "(" + COLUMNS_USERS[0] + ")\n" +
             ");";
 
+        String createExchangeRatesTable =
+            "CREATE TABLE " + TABLE_EXCHANGE_RATES + " (\n" +
+                COLUMNS_EXCHANGE_RATES[0] + " INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                COLUMNS_EXCHANGE_RATES[1] + " TEXT,\n" +
+                COLUMNS_EXCHANGE_RATES[2] + " REAL,\n" +
+                COLUMNS_EXCHANGE_RATES[3] + " STRING,\n" +
+                COLUMNS_EXCHANGE_RATES[4] + " INTEGER\n" +
+            ");";
+
         try {
             database.execSQL(createUsersTable);
             database.execSQL(createAccountsTable);
             database.execSQL(createTransactionsTable);
+            database.execSQL(createExchangeRatesTable);
 
             Log.d("Users SQL Query", createUsersTable);
             Log.d("Accounts SQL Query", createAccountsTable);
             Log.d("Transactions SQL Query", createTransactionsTable);
+            Log.d("ExchangeRates SQL Query", createExchangeRatesTable);
         }
         catch(Exception exception){
             //failed to create the tables
@@ -128,6 +150,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.d("Users SQL Query", createUsersTable);
             Log.d("Accounts SQL Query", createAccountsTable);
             Log.d("Transactions SQL Query", createTransactionsTable);
+            Log.d("ExchangeRates SQL Query", createExchangeRatesTable);
             exception.printStackTrace();
         }
     }
@@ -137,15 +160,120 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String dropTableUsers = "DROP TABLE IF EXISTS "+ TABLE_USERS;
         String dropTableAccounts = "DROP TABLE IF EXISTS " + TABLE_ACCOUNTS;
         String dropTableTransactions = "DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS;
+        String dropTableExchangeRates = "DROP TABLE IF EXISTS " + TABLE_EXCHANGE_RATES;
         database.execSQL(dropTableUsers);
         database.execSQL(dropTableAccounts);
         database.execSQL(dropTableTransactions);
+        database.execSQL(dropTableExchangeRates);
 
         this.onCreate(database);
+
+        //populate the default database with a base exchange rate
+        //will only be used if the app never gets internet connection to make a
+        //successfull Fixer.io API call
+        final HashMap<String, String> hashMapDefault = new HashMap<>();
+
+        for(String locale : GlobalConstants.getLocaleArray()) {
+            hashMapDefault.put(locale, "1.00");
+        }
+
+        setBackupExchangeRates(database, hashMapDefault, 1);
     }
 
     public void onDowngrade(SQLiteDatabase database, int oldVersion, int newVersion) {
         onUpgrade(database, oldVersion, newVersion);
+    }
+
+    //need to mirror the structure of the HashMap that gets returned in Fixer.io API call
+    HashMap<String, String> getBackupExchangeRates() {
+        final HashMap<String, String> hashMapExchangeRates = new HashMap<>();
+
+        final SQLiteDatabase database = this.getReadableDatabase();
+
+        final String COLUMNS_SELECTED[] = {COLUMNS_EXCHANGE_RATES[1],COLUMNS_EXCHANGE_RATES[2],COLUMNS_EXCHANGE_RATES[3], COLUMNS_EXCHANGE_RATES[4]};
+
+        final Cursor cursor = database.query(TABLE_EXCHANGE_RATES, COLUMNS_SELECTED, null, null, null, null, null, null);
+
+        String locale;
+        String amount;
+        String date = "";
+        int default_flag = 1;
+
+        cursor.moveToFirst();
+
+        for(int i = 0; i < cursor.getCount(); i ++) {
+            locale = cursor.getString(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[1]));
+            amount = cursor.getString(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[2]));
+            date = cursor.getString(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[3]));
+            default_flag = cursor.getInt(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[4]));
+
+            hashMapExchangeRates.put(locale, amount);
+        }
+
+        hashMapExchangeRates.put("Date", date);
+
+        GlobalConstants.setCurrencyExchangeFallBack(default_flag == 1);
+
+        cursor.close();
+        database.close();
+
+        return hashMapExchangeRates;
+    }
+
+    private void setBackupExchangeRates(SQLiteDatabase database, HashMap<String, String> hashMapExchangeRates, int default_flag) {
+        //wipe the table and then refresh all values
+        database.delete(TABLE_EXCHANGE_RATES,"", null);
+
+        final Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") final String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        ContentValues VALUES;
+        //the Fixer.io API call will be sending a "Date" key, don't insert it...
+        //only inserting locale and their values, will calculate date separately
+        for(String locale : GlobalConstants.getLocaleArray()) {
+            if(hashMapExchangeRates.containsKey(locale)) {
+                Log.d("Backup Exchange Rate", locale + " | " + hashMapExchangeRates.get(locale) + " | " + date + " | " + default_flag);
+                VALUES = new ContentValues();
+                VALUES.put(COLUMNS_EXCHANGE_RATES[1], locale);
+                VALUES.put(COLUMNS_EXCHANGE_RATES[2], hashMapExchangeRates.get(locale));
+                VALUES.put(COLUMNS_EXCHANGE_RATES[3], date);
+                VALUES.put(COLUMNS_EXCHANGE_RATES[4], default_flag);
+
+                database.insert(TABLE_EXCHANGE_RATES, null, VALUES);
+            }
+        }
+
+        GlobalConstants.setCurrencyExchangeFallBack(default_flag == 1);
+    }
+
+    void setBackupExchangeRates(HashMap<String, String> hashMapExchangeRates, int default_flag) {
+        final SQLiteDatabase database = this.getWritableDatabase();
+
+        //wipe the table and then refresh all values
+        database.delete(TABLE_EXCHANGE_RATES,"", null);
+
+        final Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") final String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        ContentValues VALUES;
+        //the Fixer.io API call will be sending a "Date" key, don't insert it...
+        //only inserting locale and their values, will calculate date separately
+        for(String locale : GlobalConstants.getLocaleArray()) {
+            if(hashMapExchangeRates.containsKey(locale)) {
+                Log.d("Backup Exchange Rate", locale + " | " + hashMapExchangeRates.get(locale) + " | " + date + " | " + default_flag);
+                VALUES = new ContentValues();
+                VALUES.put(COLUMNS_EXCHANGE_RATES[1], locale);
+                VALUES.put(COLUMNS_EXCHANGE_RATES[2], hashMapExchangeRates.get(locale));
+                VALUES.put(COLUMNS_EXCHANGE_RATES[3], date);
+                VALUES.put(COLUMNS_EXCHANGE_RATES[4], default_flag);
+
+                database.insert(TABLE_EXCHANGE_RATES, null, VALUES);
+            }
+        }
+
+        GlobalConstants.setCurrencyExchangeFallBack(default_flag == 1);
+
+        database.close();
     }
 
     int userLogin(String username, String password) {

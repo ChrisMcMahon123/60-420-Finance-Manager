@@ -67,7 +67,7 @@ public class Login extends AppCompatActivity {
 
                 if(userId > 0) {
                     //valid login
-                    Toast.makeText(Login.this, "Logged in as " + username + " ID: "+ userId, Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(Login.this, "Logged in as " + username + " ID: "+ userId, Toast.LENGTH_SHORT).show();
 
                     //launch account overview activity
                     Intent intent = new Intent(view.getContext(), Overview.class);

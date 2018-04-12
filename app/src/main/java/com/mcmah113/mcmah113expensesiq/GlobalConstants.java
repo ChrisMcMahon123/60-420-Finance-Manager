@@ -83,6 +83,7 @@ class GlobalConstants {
     }
 
     private static HashMap<String, String> hashMapExchangeRates;
+
     private static boolean currencyExchangeFallBack = false;
 
     static void setHashMapExchangeRates(HashMap<String, String> hashMap) {

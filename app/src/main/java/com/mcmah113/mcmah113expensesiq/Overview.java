@@ -1,5 +1,6 @@
 package com.mcmah113.mcmah113expensesiq;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.BitmapFactory;
@@ -16,6 +17,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +27,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 
 public class Overview extends AppCompatActivity implements
@@ -143,37 +147,61 @@ public class Overview extends AppCompatActivity implements
 
         //call Fixer.io API once, when logging in, don't need
         //to get exchange rates every few minutes
+        final Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") String today = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        HashMap<String, String> hashMapExchangeRates = databaseHelper.getBackupExchangeRates();
+
         try {
-            GlobalConstants.setHashMapExchangeRates(new FixerCurrencyAPI().execute(GlobalConstants.getLocaleArray()).get());
-            GlobalConstants.setCurrencyExchangeFallBack(false);
+            //only due the Fixer.io API call if the date has changed or if we are relying on a backup
+            //exchange rate
+            Log.d("API CHECK BEFORE", today + " = " + hashMapExchangeRates.get("Date") + " | " + GlobalConstants.getCurrencyExchangeFallBack());
 
-            if(GlobalConstants.getHashMapExchangeRates() == null) {
-                final HashMap<String, String> hashMapFallBack = new HashMap<>();
+            if(GlobalConstants.getCurrencyExchangeFallBack() || !hashMapExchangeRates.get("Date").equals(today)) {
+                //in need of an API call, lets do it
+                Log.d("FIXER.io", "NEED TO UPDATE");
 
-                for(String locale : GlobalConstants.getLocaleArray()) {
-                    hashMapFallBack.put(locale, "1.00");
+                hashMapExchangeRates = new FixerCurrencyAPI().execute(GlobalConstants.getLocaleArray()).get();
+
+                if(hashMapExchangeRates != null) {
+                    //successful Fixer.io API call
+                    Log.d("FIXER.io", "CALL SUCCESSFUL");
+                    GlobalConstants.setCurrencyExchangeFallBack(false);
+                    GlobalConstants.setHashMapExchangeRates(hashMapExchangeRates);
+                    databaseHelper.setBackupExchangeRates(hashMapExchangeRates, 0);
+                    Toast.makeText(this, "Successfully updated currency exchange rates", Toast.LENGTH_LONG).show();
                 }
+                else {
+                    //API call failed!
+                    hashMapExchangeRates = databaseHelper.getBackupExchangeRates();
+                    GlobalConstants.setHashMapExchangeRates(hashMapExchangeRates);
+                    GlobalConstants.setCurrencyExchangeFallBack(true);
 
-                GlobalConstants.setHashMapExchangeRates(hashMapFallBack);
-                GlobalConstants.setCurrencyExchangeFallBack(true);
-
-                Toast.makeText(this, "Failed to get Exchange Rates\nDefaulting to 1:1 for all exchanges", Toast.LENGTH_LONG).show();
+                    if(GlobalConstants.getCurrencyExchangeFallBack()) {
+                        Toast.makeText(this, "Failed to get Exchange Rates\nAssuming 1:1 exchange ratio", Toast.LENGTH_LONG).show();
+                    }
+                    else {
+                        Toast.makeText(this, "Failed to get Exchange Rates\nUsing stored rates as of\n" + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }
         catch (Exception exception) {
-            //couldn't get currency exchange rates,
+            //couldn't get currency exchange rates, for whatever reason
             //default to 1 for everything to fail gracefully
             exception.printStackTrace();
 
-            final HashMap<String, String> hashMapFallBack = new HashMap<>();
-
-            for(String locale : GlobalConstants.getLocaleArray()) {
-                hashMapFallBack.put(locale, "1.00");
-            }
-
-            GlobalConstants.setHashMapExchangeRates(hashMapFallBack);
+            //API call failed!
+            hashMapExchangeRates = databaseHelper.getBackupExchangeRates();
+            GlobalConstants.setHashMapExchangeRates(hashMapExchangeRates);
             GlobalConstants.setCurrencyExchangeFallBack(true);
-            Toast.makeText(this, "Failed to get Exchange Rates\nDefaulting to 1:1 for all exchanges", Toast.LENGTH_LONG).show();
+
+            if(GlobalConstants.getCurrencyExchangeFallBack()) {
+                Toast.makeText(this, "Failed to get Exchange Rates\nAssuming 1:1 exchange ratio", Toast.LENGTH_LONG).show();
+            }
+            else {
+                Toast.makeText(this, "Failed to get Exchange Rates\nUsing stored rates as of\n" + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
+            }
         }
     }
 
