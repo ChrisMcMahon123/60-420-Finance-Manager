@@ -103,5 +103,8 @@
     <string name="recent_transactions_text">Recent Transactions</string>
     <string name="no_transactions_found_text">No Transactions found</string>
     <string name="legend_title">Legend</string>
+    <string name="expense_by_category_title">Expense by Category</string>
+    <string name="from_this_week_hint">(from this week)</string>
+    <string name="income_vs_expense_title">Income Vs Expense</string>
 
 </resources>

@@ -68,6 +68,13 @@
                 android:textSize="24sp" />
 
             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:text="@string/from_this_week_hint"
+                android:textAlignment="center" />
+
+            <TextView
                 android:id="@+id/textViewNoTransactions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -98,15 +105,24 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Expense by Category"
+                android:text="@string/expense_by_category_title"
                 android:textAlignment="center"
                 android:textSize="24sp" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:text="@string/from_this_week_hint"
+                android:textAlignment="center" />
+
+            <LinearLayout
+                android:id="@+id/linearLayoutExpenseByCategoryReport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="150dp"/>
+                android:padding="5dp" />
 
         </LinearLayout>
 
@@ -123,15 +139,24 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Income Vs Expense"
+                android:text="@string/income_vs_expense_title"
                 android:textAlignment="center"
                 android:textSize="24sp" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:text="@string/from_this_week_hint"
+                android:textAlignment="center" />
+
+            <LinearLayout
+                android:id="@+id/linearLayoutIncomeVsExpense"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical"
-                android:padding="150dp"/>
+                android:padding="5dp" />
 
         </LinearLayout>
 

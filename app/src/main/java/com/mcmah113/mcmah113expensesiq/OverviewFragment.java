@@ -1,6 +1,8 @@
 package com.mcmah113.mcmah113expensesiq;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,17 +10,32 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class OverviewFragment extends Fragment {
     private DatabaseHelper databaseHelper;
     private LinearLayout linearLayoutRecentTransactions;
+    private LinearLayout linearLayoutExpenseByCategoryReport;
+    private LinearLayout linearLayoutIncomeVsExpense;
+
     private TextView textViewNoTransactions;
 
     public OverviewFragment() {
@@ -36,6 +53,7 @@ public class OverviewFragment extends Fragment {
 
         final HashMap<String, String> userData = databaseHelper.getUserSettings(Overview.getUserId());
 
+        //dealing with accounts
         if("1".equals(userData.get("flag1"))) {
             final Account accountsList[] = databaseHelper.getAccountList(userId);
 
@@ -68,27 +86,46 @@ public class OverviewFragment extends Fragment {
             linearLayoutAccounts.setVisibility(View.GONE);
         }
 
+        //dealing with transactions and reports using them
+        final Calendar calendar = Calendar.getInstance();
+        final Calendar start = (Calendar) calendar.clone();
+        start.add(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek() - start.get(Calendar.DAY_OF_WEEK));
+
+        final Calendar end = (Calendar) start.clone();
+        end.add(Calendar.DAY_OF_YEAR, 6);
+
+        @SuppressLint("SimpleDateFormat") final String startDay = new SimpleDateFormat("yyyy-MM-dd").format(start.getTime());
+        @SuppressLint("SimpleDateFormat") final String endDay = new SimpleDateFormat("yyyy-MM-dd").format(end.getTime());
+
+        final Transaction transactionList[] = databaseHelper.getTransactionsRange(-1, userId, startDay, endDay);
+
         if("1".equals(userData.get("flag2"))) {
             //set up the recent transactions of the overview
             textViewNoTransactions = view.findViewById(R.id.textViewNoTransactions);
             linearLayoutRecentTransactions = view.findViewById(R.id.linearLayoutRecentTransactions);
-            getRecentTransactionsSection(userId);
+            getRecentTransactions(userId, transactionList);
         }
         else {
             final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutOverviewRecentTransactions);
             linearLayoutTransactions.setVisibility(View.GONE);
         }
 
-        if("1".equals(userData.get("flag3"))) {
+        linearLayoutExpenseByCategoryReport = view.findViewById(R.id.linearLayoutExpenseByCategoryReport);
 
+        if("1".equals(userData.get("flag3"))) {
+            //show expense by category report
+            getExpenseByCategory(userId, transactionList);
         }
         else {
             final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutExpensebyCategory);
             linearLayoutTransactions.setVisibility(View.GONE);
         }
 
-        if("1".equals(userData.get("flag4"))) {
+        linearLayoutIncomeVsExpense = view.findViewById(R.id.linearLayoutIncomeVsExpense);
 
+        if("1".equals(userData.get("flag4"))) {
+            //show income vs Expense report
+            getIncomeVsExpenseReport(userId, transactionList);
         }
         else {
             final LinearLayout linearLayoutTransactions = view.findViewById(R.id.linearLayoutIncomeExpense);
@@ -198,34 +235,30 @@ public class OverviewFragment extends Fragment {
         }
     }
 
-    @SuppressLint("SimpleDateFormat")
-    public void getRecentTransactionsSection(int userId) {
+    public void getRecentTransactions(int userId, Transaction transactionList[]) {
         //show transaction histories for each account recently (this week)
-        final Calendar calendar = Calendar.getInstance();
-        final Calendar start = (Calendar) calendar.clone();
-        start.add(Calendar.DAY_OF_WEEK, start.getFirstDayOfWeek() - start.get(Calendar.DAY_OF_WEEK));
-
-        final Calendar end = (Calendar) start.clone();
-        end.add(Calendar.DAY_OF_YEAR, 6);
-
-        final String startDay = new SimpleDateFormat("yyyy-MM-dd").format(start.getTime());
-        final String endDay = new SimpleDateFormat("yyyy-MM-dd").format(end.getTime());
-
-        final Transaction transactionList[] = databaseHelper.getTransactionsRange(-1, userId, startDay, endDay);
-
-        View viewTransactions;
         final LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+        View viewTransactions;
+
+        int count = 0;
 
         if(transactionList.length > 0) {
             textViewNoTransactions.setVisibility(View.GONE);
 
             for(Transaction transaction : transactionList) {
+                if(count == 5) {
+                    break;
+                }
+                else {
+                    count ++;
+                }
+
                 viewTransactions = layoutInflater.inflate(R.layout.layout_listview_transactions, null);
 
                 if(transaction != null) {
                     final Account account = databaseHelper.getAccountInfo(transaction.getAccountFromId(), userId);
 
-                    if (account != null) {
+                    if(account != null) {
                         final TextView textViewName = viewTransactions.findViewById(R.id.textViewAccount);
                         textViewName.setText(account.getName());
 
@@ -249,14 +282,14 @@ public class OverviewFragment extends Fragment {
 
                         final TextView textViewType = viewTransactions.findViewById(R.id.textViewType);
 
-                        if (transaction.getAccountToId() > 0) {
+                        if(transaction.getAccountToId() > 0) {
                             //need to display a little more information like who the money went to / where it came from
                             final Account accountTo = databaseHelper.getAccountInfo(transaction.getAccountToId(), userId);
                             String type;
 
-                            if (accountTo != null) {
-                                if (accountTo.getHiddenFlag() && !DatabaseHelper.getDisplayHiddenFlag()) {
-                                    if (transaction.getType().equals("Transfer")) {
+                            if(accountTo != null) {
+                                if(accountTo.getHiddenFlag() && !DatabaseHelper.getDisplayHiddenFlag()) {
+                                    if(transaction.getType().equals("Transfer")) {
                                         //sent money to an account
                                         type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + getContext().getResources().getString(R.string.account_hidden_text);
                                     }
@@ -286,6 +319,7 @@ public class OverviewFragment extends Fragment {
                                     type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + getContext().getResources().getString(R.string.account_deleted_transaction);
                                 }
                             }
+
                             textViewType.setText(type);
                         }
                         else {
@@ -293,14 +327,234 @@ public class OverviewFragment extends Fragment {
                             textViewType.setText(transaction.getType());
                         }
                     }
-                }
 
-                linearLayoutRecentTransactions.addView(viewTransactions);
+                    linearLayoutRecentTransactions.addView(viewTransactions);
+                }
             }
         }
         else {
             //no transactions, show the text
             textViewNoTransactions.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void getExpenseByCategory(int userId, Transaction transactionList[]) {
+        final HashMap<String, String> userData = databaseHelper.getUserSettings(userId);
+
+        final HashMap<String, Double> hashMapAmount = new HashMap<>();
+
+        String type;
+        String locale;
+        double amount;
+        double exchangeAmount;
+        double totalAmount = 0.0;
+
+        final ArrayList<LinearLayout> linearLayoutLegendEntry = new ArrayList<>();
+
+        if(transactionList.length > 0) {
+            for (Transaction transaction : transactionList) {
+                amount = transaction.getAmount();
+                if (amount < 0) {
+                    type = transaction.getType();
+                    locale = transaction.getLocale();
+                    exchangeAmount = currencyExchange(userData.get("locale"), locale, amount);
+
+                    totalAmount += exchangeAmount;
+
+                    if (hashMapAmount.containsKey(type)) {
+                        //that specific type already exists, increment count by 1
+                        hashMapAmount.put(type, (hashMapAmount.get(type) + exchangeAmount));
+                    }
+                    else {
+                        //type is unique, start count at 1
+                        hashMapAmount.put(type, exchangeAmount);
+
+                        //add unique legend entry (the row)
+                        final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+                        linearLayoutLegendEntry.add((LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null));
+                    }
+                }
+            }
+
+            if(hashMapAmount.size() > 0) {
+                linearLayoutExpenseByCategoryReport.addView(createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry));
+            }
+            else {
+                linearLayoutExpenseByCategoryReport.addView(displayNoTransactionsText());
+            }
+        }
+        else {
+            linearLayoutExpenseByCategoryReport.addView(displayNoTransactionsText());
+        }
+    }
+
+    public void getIncomeVsExpenseReport(int userId, Transaction transactionList[]) {
+        final HashMap<String, String> userData = databaseHelper.getUserSettings(userId);
+
+        final HashMap<String, Double> hashMapAmount = new HashMap<>();
+
+        String locale;
+        double amount;
+        double exchangeAmount;
+        double totalAmount = 0.0;
+
+        final ArrayList<LinearLayout> linearLayoutLegendEntry = new ArrayList<>();
+
+        if(transactionList.length > 0) {
+            for (Transaction transaction : transactionList) {
+                amount = transaction.getAmount();
+                locale = transaction.getLocale();
+                exchangeAmount = currencyExchange(userData.get("locale"), locale, amount);
+
+                if(amount > 0) {
+                    if (hashMapAmount.containsKey("Income")) {
+                        //that specific type already exists, increment count by 1
+                        hashMapAmount.put("Income", (hashMapAmount.get("Income") + exchangeAmount));
+                    }
+                    else {
+                        //type is unique, start count at 1
+                        hashMapAmount.put("Income", exchangeAmount);
+                    }
+                }
+                else if(amount < 0) {
+                    if (hashMapAmount.containsKey("Expense")) {
+                        //that specific type already exists, increment count by 1
+                        hashMapAmount.put("Expense", (hashMapAmount.get("Expense") + exchangeAmount));
+                    }
+                    else {
+                        //type is unique, start count at 1
+                        hashMapAmount.put("Expense", exchangeAmount);
+                    }
+                }
+
+                //add unique legend entry (the row)
+                final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+                linearLayoutLegendEntry.add((LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null));
+            }
+
+            if(hashMapAmount.size() > 0) {
+                if(hashMapAmount.containsKey("Expense") && hashMapAmount.containsKey("Income")) {
+                    totalAmount = Math.abs(hashMapAmount.get("Income") - hashMapAmount.get("Expense"));
+                }
+                else if(hashMapAmount.containsKey("Income")) {
+                    totalAmount = hashMapAmount.get("Income");
+                }
+                else if(hashMapAmount.containsKey("Expense")) {
+                    totalAmount = hashMapAmount.get("Expense") * -1;
+                }
+
+                linearLayoutIncomeVsExpense.addView(createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry));
+            }
+            else {
+                linearLayoutIncomeVsExpense.addView(displayNoTransactionsText());
+            }
+        }
+        else {
+            linearLayoutIncomeVsExpense.addView(displayNoTransactionsText());
+        }
+    }
+
+    public View createPieChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, ArrayList<LinearLayout> linearLayoutLegendEntry) {
+        //get the text of the inner pie that represents the
+        final PieChart pieChart = new PieChart(getContext());
+
+        @SuppressLint("DefaultLocale") String totalAmountString = userData.get("symbol") + String.format("%.2f", totalAmount);
+
+        final int colorPalette[] = GlobalConstants.getColorPalette();
+
+        final LinearLayout linearLayoutLegend = new LinearLayout(getContext());
+        linearLayoutLegend.setOrientation(LinearLayout.VERTICAL);
+
+        ImageView imageViewLegend;
+        TextView textViewLegend;
+        TextView textViewPercent;
+        View view;
+        int i = 0;
+
+        final List<PieEntry> entries = new ArrayList<>();
+
+        for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
+            entries.add(new PieEntry((float) (pair.getValue() / totalAmount), pair.getKey()));
+
+            view = linearLayoutLegendEntry.get(i);
+            textViewLegend = view.findViewById(R.id.textViewLegend);
+            textViewLegend.setText(pair.getKey());
+
+            imageViewLegend = view.findViewById(R.id.imageViewLegend);
+            imageViewLegend.setColorFilter(colorPalette[i], PorterDuff.Mode.SRC_ATOP);
+
+            textViewPercent = view.findViewById(R.id.textViewPercent);
+            @SuppressLint("DefaultLocale") String text = userData.get("symbol") + String.format("%.2f", pair.getValue());
+            textViewPercent.setText(text);
+            linearLayoutLegend.addView(view);
+
+            i++;
+        }
+
+        //customize the graph adding style and data
+        final PieDataSet set = new PieDataSet(entries, " ");
+        set.setColors(colorPalette);
+        set.setValueTextSize(18);
+        set.setDrawValues(false);
+        set.setValueTextColor(Color.WHITE);
+
+        final PieData data = new PieData(set);
+
+        //shows the name of the chart in the lower corner
+        final Description description = new Description();
+        description.setText(" ");
+        description.setTextSize(18);
+
+        final Legend legend = pieChart.getLegend();
+        legend.setTextSize(22);
+        legend.setOrientation(Legend.LegendOrientation.VERTICAL);
+        legend.setEnabled(false);
+
+        pieChart.setDrawEntryLabels(false);//text that shows on each pie slice
+        pieChart.setData(data);
+        pieChart.setUsePercentValues(true);//percentages that show up on each pie slice
+        pieChart.setCenterTextColor(Color.BLACK);
+        pieChart.setCenterText(totalAmountString);
+        pieChart.setCenterTextSize(18);
+        pieChart.setDescription(description);
+        pieChart.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1500));
+        pieChart.setTouchEnabled(false);
+        pieChart.invalidate();
+
+        //create my own legend
+        final TextView textViewTitle = new TextView(getContext());
+        textViewTitle.setText(getContext().getResources().getString(R.string.legend_title));
+        textViewTitle.setTextSize(22);
+        textViewTitle.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        textViewTitle.setPadding(15, 15, 15, 15);
+
+        final LinearLayout linearLayout = new LinearLayout(getContext());
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+        linearLayout.addView(pieChart);
+        linearLayout.addView(textViewTitle);
+        linearLayout.addView(linearLayoutLegend);
+
+        return linearLayout;
+    }
+
+    public View displayNoTransactionsText() {
+        //no transactions, show text;
+        final TextView textView = new TextView(getContext());
+        textView.setTextSize(18);
+        textView.setTextColor(Color.BLACK);
+        textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        textView.setText("No Transactions \n Unable to Show Report");
+        return textView;
+    }
+
+    private double currencyExchange(String userLocale, String amountLocale, double amount) {
+        final HashMap<String, String> hashMapData = GlobalConstants.getHashMapExchangeRates();
+        final double currency2 = Double.parseDouble(hashMapData.get(userLocale));
+        final double currency1 = Double.parseDouble(hashMapData.get(amountLocale));
+        final double exchangeRate = currency1 / currency2;
+
+        return Math.abs(amount / exchangeRate);
     }
 }

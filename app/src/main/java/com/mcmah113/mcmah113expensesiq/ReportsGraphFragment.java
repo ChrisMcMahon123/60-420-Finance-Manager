@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
@@ -26,10 +27,14 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -221,20 +226,20 @@ public class ReportsGraphFragment extends Fragment {
                         }
                         break;
                     case -2:
-                        //add all the weeks to the HashMap first
-                        for(String weekDay: weekList) {
-                            hashMapAmount.put(weekDay, 0.0);
-
-                            if(!foundDay) {
-                                dayNumberOfWeek ++;//starts at 0.
-                            }
-
-                            if(todayWeekDayFormat.equals(weekDay)) {
-                                foundDay = true;
-                            }
-                        }
-
                         if(transactionList.length > 0) {
+                            //add all the weeks to the HashMap first
+                            for(String weekDay: weekList) {
+                                hashMapAmount.put(weekDay, 0.0);
+
+                                if(!foundDay) {
+                                    dayNumberOfWeek ++;//starts at 0.
+                                }
+
+                                if(todayWeekDayFormat.equals(weekDay)) {
+                                    foundDay = true;
+                                }
+                            }
+
                             for (Transaction transaction : transactionList) {
                                 amount = transaction.getAmount();
 
@@ -274,12 +279,12 @@ public class ReportsGraphFragment extends Fragment {
                         }
                         break;
                     case -3:
-                        //add all the months to the HashMap first
-                        for(String month: monthsList) {
-                            hashMapAmount.put(month, 0.0);
-                        }
-
                         if(transactionList.length > 0) {
+                            //add all the months to the HashMap first
+                            for(String month: monthsList) {
+                                hashMapAmount.put(month, 0.0);
+                            }
+
                             for (Transaction transaction : transactionList) {
                                 amount = transaction.getAmount();
                                 type = transaction.getType();
@@ -363,20 +368,20 @@ public class ReportsGraphFragment extends Fragment {
                         }
                         break;
                     case -2:
-                        //add all the weeks to the HashMap first
-                        for(String weekDay: weekList) {
-                            hashMapAmount.put(weekDay, 0.0);
-
-                            if(!foundDay) {
-                                dayNumberOfWeek ++;//starts at 0.
-                            }
-
-                            if(todayWeekDayFormat.equals(weekDay)) {
-                                foundDay = true;
-                            }
-                        }
-
                         if(transactionList.length > 0) {
+                            //add all the weeks to the HashMap first
+                            for(String weekDay: weekList) {
+                                hashMapAmount.put(weekDay, 0.0);
+
+                                if(!foundDay) {
+                                    dayNumberOfWeek ++;//starts at 0.
+                                }
+
+                                if(todayWeekDayFormat.equals(weekDay)) {
+                                    foundDay = true;
+                                }
+                            }
+
                             for (Transaction transaction : transactionList) {
                                 amount = transaction.getAmount();
 
@@ -416,12 +421,12 @@ public class ReportsGraphFragment extends Fragment {
                         }
                         break;
                     case -3:
-                        //add all the months to the HashMap first
-                        for(String month: monthsList) {
-                            hashMapAmount.put(month, 0.0);
-                        }
-
                         if(transactionList.length > 0) {
+                            //add all the months to the HashMap first
+                            for(String month: monthsList) {
+                                hashMapAmount.put(month, 0.0);
+                            }
+
                             for (Transaction transaction : transactionList) {
                                 amount = transaction.getAmount();
                                 type = transaction.getType();
@@ -521,7 +526,106 @@ public class ReportsGraphFragment extends Fragment {
                 break;
             case "Balance":
                 //only one report
+                if(transactionList.length > 0) {
+                    //add all the weeks to the HashMap first
+                    //database ordered by date! so the order is least to greatest
+                    //earliest date in the set is at the end
+                    //this the line charts X-Axis
+                    final String endDate = transactionList[0].getDate();
+                    date = transactionList[transactionList.length-1].getDate();
 
+                    final ArrayList<String> calendarsList = new ArrayList<>();
+
+                    final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                    final Calendar calendar = Calendar.getInstance();
+
+                    try {
+                        calendar.setTime(simpleDateFormat.parse(date));
+                    }
+                    catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+
+                    while(date.compareTo(endDate) <= 0) {
+                        //got the date in string format, parse it and add it the ArrayList
+                        date = simpleDateFormat.format(calendar.getTime());
+
+                        monthInt = Integer.parseInt(date.substring(date.indexOf('-')+1, date.lastIndexOf('-'))) -1;
+                        dayInt = Integer.parseInt(date.substring(date.lastIndexOf('-')+1, date.length()));
+                        dayOfWeek = GlobalConstants.getMonthsArray()[monthInt] + " " + dayInt;
+
+                        calendarsList.add(dayOfWeek);
+
+                        //move ahead a day
+                        calendar.add(Calendar.DATE, 1);
+
+                        Log.d("Day", dayOfWeek);
+                    }
+
+                    calendarsList.remove(calendarsList.size()-1);
+
+                    final HashMap<String, Double> hashMapIncome = new HashMap<>();
+                    final HashMap<String, Double> hashMapExpense = new HashMap<>();
+
+                    double totalExpense = 0.0;
+                    double totalIncome = 0.0;
+
+                    for (Transaction transaction : transactionList) {
+                        amount = transaction.getAmount();
+
+                        date = transaction.getDate();
+                        locale = transaction.getLocale();
+                        exchangeAmount = currencyExchange(userData.get("locale"), locale, amount);
+
+                        monthInt = Integer.parseInt(date.substring(date.indexOf('-')+1, date.lastIndexOf('-'))) -1;
+                        dayInt = Integer.parseInt(date.substring(date.lastIndexOf('-')+1, date.length()));
+                        dayOfWeek = GlobalConstants.getMonthsArray()[monthInt] + " " + dayInt;
+
+                        if(amount > 0) {
+                            //income
+                            totalIncome += exchangeAmount;
+
+                            if(hashMapIncome.containsKey(dayOfWeek)) {
+                                hashMapIncome.put(dayOfWeek, (hashMapIncome.get(dayOfWeek) + exchangeAmount));
+                            }
+                            else {
+                                hashMapIncome.put(dayOfWeek, exchangeAmount);
+                            }
+                        }
+                        else if(amount < 0) {
+                            //expense
+                            totalExpense += exchangeAmount;
+
+                            if(hashMapExpense.containsKey(dayOfWeek)) {
+                                hashMapExpense.put(dayOfWeek, (hashMapExpense.get(dayOfWeek) + exchangeAmount));
+                            }
+                            else {
+                                hashMapExpense.put(dayOfWeek, exchangeAmount);
+                            }
+                        }
+                    }
+
+                    if(hashMapExpense.size() > 0 || hashMapIncome.size() > 0) {
+                        Log.d("Expense", "Expense");
+                        for(Map.Entry<String, Double> pair : hashMapExpense.entrySet()) {
+                            Log.d(pair.getKey(), "" + pair.getValue());
+                        }
+
+                        Log.d("Income", "Income");
+                        for(Map.Entry<String, Double> pair : hashMapIncome.entrySet()) {
+                            Log.d(pair.getKey(), "" + pair.getValue());
+                        }
+
+                        createLineChart(calendarsList, hashMapExpense, hashMapIncome, userData, totalExpense, totalIncome);
+                    }
+                    else {
+                        displayNoTransactionsText();
+                    }
+                }
+                else {
+                    displayNoTransactionsText();
+                }
                 break;
         }
     }
@@ -603,6 +707,160 @@ public class ReportsGraphFragment extends Fragment {
     }
 
     @SuppressLint("DefaultLocale")
+    public void createLineChart(final List<String> daysList, HashMap<String, Double> hashMapExpense, HashMap<String, Double> hashMapIncome, HashMap<String, String> userData, double totalExpense, double totalIncome) {
+        final LineChart lineChart = new LineChart(getContext());
+
+        final List<Entry> entriesExpense = new ArrayList<>();
+        final List<Entry> entriesIncome = new ArrayList<>();
+
+        final int colorPalette[] = GlobalConstants.getColorPalette();
+
+        //need a minimum of two entries or else there's massive issues (crashing)s
+        if(daysList.size() == 1) {
+            daysList.add(daysList.get(0));
+        }
+
+        Log.d("Month Size", "" + daysList.size());
+
+        int j = -1;//last valid entry
+
+        for(int i = 0; i < daysList.size(); i++) {
+            Log.d("keysList: " + i, daysList.get(i));
+            if(hashMapExpense.containsKey(daysList.get(i))) {
+                entriesExpense.add(new Entry(i, hashMapExpense.get(daysList.get(i)).floatValue()));
+                j = i;
+            }
+            else {
+                if(j > 0) {
+                    //add the last valid entry
+                    entriesExpense.add(new Entry(i, hashMapExpense.get(daysList.get(j)).floatValue()));
+                }
+           }
+        }
+
+        j = -1;
+
+        for(int i = 0; i < daysList.size(); i++) {
+            Log.d("keysList: " + i, daysList.get(i));
+            if(hashMapIncome.containsKey(daysList.get(i))) {
+                entriesIncome.add(new Entry(i, hashMapIncome.get(daysList.get(i)).floatValue()));
+                j = i;
+            }
+            else {
+                if(j > 0) {
+                    //add the last valid entry
+                    entriesIncome.add(new Entry(i, hashMapIncome.get(daysList.get(j)).floatValue()));
+                }
+            }
+        }
+
+        final LineDataSet lineDataSetExpense = new LineDataSet(entriesExpense, "Expense");
+        lineDataSetExpense.setAxisDependency(YAxis.AxisDependency.LEFT);
+        lineDataSetExpense.setCircleColor(Color.BLACK);
+        lineDataSetExpense.setColor(colorPalette[0]);
+        lineDataSetExpense.setLineWidth(3);
+        lineDataSetExpense.setValueTextSize(18);
+
+        final LineDataSet lineDataSetIncome = new LineDataSet(entriesIncome, "Income");
+        lineDataSetIncome.setAxisDependency(YAxis.AxisDependency.LEFT);
+        lineDataSetIncome.setCircleColor(Color.BLACK);
+        lineDataSetIncome.setColor(colorPalette[1]);
+        lineDataSetIncome.setLineWidth(3);
+        lineDataSetIncome.setValueTextSize(18);
+
+        List<ILineDataSet> dataSets = new ArrayList<>();
+
+        if(entriesExpense.size() > 0) {
+            dataSets.add(lineDataSetExpense);
+        }
+
+        if(entriesIncome.size() > 0) {
+            dataSets.add(lineDataSetIncome);
+        }
+
+        final LineData data = new LineData(dataSets);
+
+        lineChart.setData(data);
+        lineChart.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1500));
+        lineChart.setScaleEnabled(false);
+        lineChart.setTouchEnabled(false);
+
+        final XAxis xAxis = lineChart.getXAxis();
+        xAxis.setGranularity(1);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextSize(18);
+        xAxis.setLabelRotationAngle(270);
+        xAxis.setLabelCount(daysList.size());
+        xAxis.setAxisMaximum(daysList.size()-1);
+
+        xAxis.setValueFormatter(new IAxisValueFormatter() {
+            public String getFormattedValue(float value, AxisBase axis) {
+                return daysList.get((int) value);
+            }
+        });
+
+        final YAxis yAxisLeft = lineChart.getAxisLeft();
+        yAxisLeft.setEnabled(false);
+
+        final YAxis yAxisRight = lineChart.getAxisRight();
+        yAxisRight.setEnabled(false);
+
+        //shows the name of the chart in the lower corner
+        final Description description = new Description();
+        description.setText(" ");
+        description.setTextSize(18);
+        lineChart.setDescription(description);
+
+        final Legend legend = lineChart.getLegend();
+        legend.setTextSize(22);
+        legend.setOrientation(Legend.LegendOrientation.VERTICAL);
+        legend.setEnabled(false);
+
+        lineChart.invalidate();
+
+        linearLayoutGraphArea.addView(lineChart);
+
+        //create my own legend
+        final TextView textViewTitle = new TextView(getContext());
+        textViewTitle.setText(getContext().getResources().getString(R.string.legend_title));
+        textViewTitle.setTextSize(22);
+        textViewTitle.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        textViewTitle.setPadding(15, 100, 15, 15);
+
+        linearLayoutGraphArea.addView(textViewTitle);
+
+        final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+
+        LinearLayout view = (LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null);
+
+        TextView textViewLegend = view.findViewById(R.id.textViewLegend);
+        textViewLegend.setText("Expense");
+
+        ImageView imageViewLegend = view.findViewById(R.id.imageViewLegend);
+        imageViewLegend.setColorFilter(colorPalette[0], PorterDuff.Mode.SRC_ATOP);
+
+        TextView textViewPercent = view.findViewById(R.id.textViewPercent);
+        String text = userData.get("symbol") + String.format("%.2f", totalExpense);
+        textViewPercent.setText(text);
+
+        linearLayoutGraphArea.addView(view);
+
+        view = (LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null);
+
+        textViewLegend = view.findViewById(R.id.textViewLegend);
+        textViewLegend.setText("Income");
+
+        imageViewLegend = view.findViewById(R.id.imageViewLegend);
+        imageViewLegend.setColorFilter(colorPalette[1], PorterDuff.Mode.SRC_ATOP);
+
+        textViewPercent = view.findViewById(R.id.textViewPercent);
+        text = userData.get("symbol") + String.format("%.2f", totalIncome);
+        textViewPercent.setText(text);
+
+        linearLayoutGraphArea.addView(view);
+    }
+
+    @SuppressLint("DefaultLocale")
     public void createBarChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, int divisor, String incomeExpense, final List<String> keysList, String type) {
         final BarChart barChart = new BarChart(getContext());
         final List<BarEntry> entries = new ArrayList<>();
@@ -641,7 +899,7 @@ public class ReportsGraphFragment extends Fragment {
         xAxis.setAxisMaximum(keysList.size()-1);
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             public String getFormattedValue(float value, AxisBase axis) {
-            return keysList.get((int) value);
+                return keysList.get((int) value);
             }
         });
 
