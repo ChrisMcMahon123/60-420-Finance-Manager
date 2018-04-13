@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="2dp"
-        android:text="Accounts Overview"
+        android:text="@string/accounts_overview_customize"
         android:textAlignment="viewStart"
         android:textSize="18sp"
         android:theme="@style/SwitchTheme"/>
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="2dp"
-        android:text="Recent Transactions"
+        android:text="@string/recent_transactions_customize"
         android:textSize="18sp"
         android:theme="@style/SwitchTheme"/>
 
@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="2dp"
-        android:text="Expense by Category"
+        android:text="@string/expense_by_category_customize"
         android:textSize="18sp"
         android:theme="@style/SwitchTheme"/>
 
@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="2dp"
-        android:text="Income Vs Expense"
+        android:text="@string/income_vs_expense_customize"
         android:textSize="18sp"
         android:theme="@style/SwitchTheme"/>
 </LinearLayout>

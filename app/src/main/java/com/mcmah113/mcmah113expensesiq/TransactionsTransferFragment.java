@@ -14,6 +14,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 
 public class TransactionsTransferFragment extends Fragment {
@@ -51,6 +53,7 @@ public class TransactionsTransferFragment extends Fragment {
         //setting up the editText properties
         final EditText editTextAmount = view.findViewById(R.id.editTextAmount);
         final EditText editTextNote = view.findViewById(R.id.editTextNote);
+        final EditText editTextDate = view.findViewById(R.id.editTextDate);
 
         //setting the spinners properties
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), R.layout.layout_spinner, spinnerString);
@@ -110,6 +113,8 @@ public class TransactionsTransferFragment extends Fragment {
         buttonTransaction.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //find out which accounts were selected and get their Ids
+                final String dateString = editTextDate.getText().toString();
+
                 int accountFromId = -1;
                 int accountToId = -1;
 
@@ -126,41 +131,55 @@ public class TransactionsTransferFragment extends Fragment {
                         break;
                     }
                 }
+
                 if(accountFromId > 0 && accountToId > 0) {
                     if(!spinnerAccountFrom.getSelectedItem().toString().equals(spinnerAccountTo.getSelectedItem().toString())) {
                         //2 different accounts selected, good
-                        if(!editTextAmount.getText().toString().isEmpty()) {
-                            //amount is filled out, try and convert it
+                        if(!editTextAmount.getText().toString().isEmpty() && !dateString.isEmpty()) {
                             try {
-                                double amount = Double.parseDouble(editTextAmount.getText().toString());
+                                //check to see if the inputted date is valid, will throw exception on illegal date
+                                final Calendar calendar = Calendar.getInstance();
+                                @SuppressLint("SimpleDateFormat") final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                simpleDateFormat.setLenient(false);
 
+                                calendar.setTime(simpleDateFormat.parse(dateString));
 
-                                final Bundle args = new Bundle();
-                                args.putInt("accountFromId", accountFromId);
-                                args.putInt("accountToId", accountToId);
-                                args.putDouble("amount", amount);
-                                args.putDouble("exchangeRate", exchangeRate);
-                                args.putString("note", editTextNote.getText().toString());
+                                //amount is filled out, try and convert it
+                                try {
+                                    double amount = Double.parseDouble(editTextAmount.getText().toString());
 
-                                TransactionsTransferDialogFragment dialogFragment = new TransactionsTransferDialogFragment();
-                                dialogFragment.setArguments(args);
-                                dialogFragment.show(getFragmentManager(), "Account Dialog");
+                                    final Bundle args = new Bundle();
+                                    args.putInt("accountFromId", accountFromId);
+                                    args.putInt("accountToId", accountToId);
+                                    args.putDouble("amount", amount);
+                                    args.putDouble("exchangeRate", exchangeRate);
+                                    args.putString("note", editTextNote.getText().toString());
+                                    args.putString("date", dateString);
+
+                                    TransactionsTransferDialogFragment dialogFragment = new TransactionsTransferDialogFragment();
+                                    dialogFragment.setArguments(args);
+                                    dialogFragment.show(getFragmentManager(), "Account Dialog");
+                                }
+                                catch(Exception exception) {
+                                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.toast_invalid_money), Toast.LENGTH_SHORT).show();
+                                }
                             }
-                            catch(Exception exception) {
-                                Toast.makeText(getContext(), "Invalid Money input", Toast.LENGTH_SHORT).show();
+                            catch (Exception exception) {
+                                Toast.makeText(getContext(), getContext().getResources().getString(R.string.invalid_date), Toast.LENGTH_SHORT).show();
+
                             }
                         }
                         else {
-                            Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getContext().getResources().getString(R.string.Toast_Required), Toast.LENGTH_SHORT).show();
                         }
                     }
                     else {
                         //same account selected, don;t let them transfer funds
-                        Toast.makeText(getContext(), "Cannot transfer to the same account", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getContext().getResources().getString(R.string.same_account_fail), Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
-                    Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.Toast_Required), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -190,8 +209,8 @@ public class TransactionsTransferFragment extends Fragment {
             }
             else {
                 exchangeRate = 1.00;
-                rateString = "Fixer API is unavailable, assuming 1:1 Ratio";
-                refreshDate = "Unavailable";
+                rateString = getContext().getResources().getString(R.string.fixer_io_unavailable);
+                refreshDate = getContext().getResources().getString(R.string.unavailable_fail);
             }
 
             textViewRate.setText(rateString);

@@ -52,9 +52,12 @@ public class TransactionsAdapter extends ArrayAdapter<Transaction> {
             textViewNote.setText(transactionNote);
 
             final TextView textViewType = row.findViewById(R.id.textViewType);
+            final TextView textViewPayee = row.findViewById(R.id.textViewPayee);
 
             if(transaction.getAccountToId() > 0 && (transaction.getType().equals("Transfer") || transaction.getType().equals("Receive"))) {
                 //need to display a little more information like who the money went to / where it came from
+                textViewPayee.setText(getContext().getResources().getString(R.string.transferred_funds_label));
+
                 final Account accountTo = databaseHelper.getAccountInfo(transaction.getAccountToId(), userId);
                 String type = "";
 
@@ -95,6 +98,7 @@ public class TransactionsAdapter extends ArrayAdapter<Transaction> {
             }
             else {
                 //show the transaction type
+                textViewPayee.setText(transaction.getPayee());
                 textViewType.setText(transaction.getType());
             }
         }

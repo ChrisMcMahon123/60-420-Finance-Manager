@@ -76,7 +76,7 @@ public class Login extends AppCompatActivity {
                     startActivity(intent);
                 }
                 else {
-                    Toast.makeText(Login.this, "Username / password incorrect", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Login.this, getResources().getString(R.string.uname_password_wrong_toast), Toast.LENGTH_SHORT).show();
                 }
             }
         });

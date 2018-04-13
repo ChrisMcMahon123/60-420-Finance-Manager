@@ -23,7 +23,14 @@ public class ReportsIncomeFragment extends Fragment {
 
     public void onViewCreated(View view, Bundle bundle) {
         final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
-        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getIncomeReports());
+
+        final String incomeReports[][] = {
+                {"Income by Category", getContext().getResources().getString(R.string.income_report1)},
+                {"Daily Income", getContext().getResources().getString(R.string.income_report2)},
+                {"Monthly Income", getContext().getResources().getString(R.string.income_report3)}
+        };
+
+        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), incomeReports);
 
         //set up the listView properties
         final ListView listView = view.findViewById(R.id.listviewIncome);

@@ -19,7 +19,7 @@ public class FixerCurrencyAPI extends AsyncTask<String, Void, HashMap<String, St
         //convert the two sent from the caller
         //using a HashMap so order doesn't matter
         StringBuilder httpURL = new StringBuilder("http://data.fixer.io/api/latest?access_key=");
-        final String apiKey = "4f16c719030b8d758de15ddf4a9ca23f";
+        final String apiKey = "c5dfca79fff6a6a28e46260f1f3bf9bf";
 
         httpURL.append(apiKey);
         httpURL.append("&symbols=");

@@ -18,13 +18,14 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 120;
+    private static final int DATABASE_VERSION = 12345;
 
     //table names
     private static final String TABLE_USERS = "Users";
     private static final String TABLE_ACCOUNTS = "Accounts";
     private static final String TABLE_TRANSACTIONS = "Transactions";
     private static final String TABLE_EXCHANGE_RATES = "ExchangeRates";
+
     //tables columns
     private static final String COLUMNS_USERS[] = {
         "user_id",
@@ -59,7 +60,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         "locale",
         "amount",
         "date",
-        "note"
+        "note",
+        "payee"
     };
 
     private static final String COLUMNS_EXCHANGE_RATES[] = {
@@ -120,6 +122,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMNS_TRANSACTIONS[6] + " REAL,\n" +
                 COLUMNS_TRANSACTIONS[7] + " TEXT, \n" +
                 COLUMNS_TRANSACTIONS[8] + " TEXT, \n" +
+                COLUMNS_TRANSACTIONS[9] + " TEXT, \n" +
                 "FOREIGN KEY(" + COLUMNS_TRANSACTIONS[1] + ") " +
                 "REFERENCES " + TABLE_USERS + "(" + COLUMNS_USERS[0] + ")\n" +
             ");";
@@ -220,6 +223,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return hashMapExchangeRates;
     }
 
+    //this is called only when there's a database upgrade / downgrade
+    //only used internally to set the default exchange rates to 1
+    //don't close the database as that will lock out all requests in the future
     private void setBackupExchangeRates(SQLiteDatabase database, HashMap<String, String> hashMapExchangeRates, int default_flag) {
         //wipe the table and then refresh all values
         database.delete(TABLE_EXCHANGE_RATES,"", null);
@@ -670,6 +676,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             VALUES.put(COLUMNS_TRANSACTIONS[6], transaction.getAmount());
             VALUES.put(COLUMNS_TRANSACTIONS[7], transaction.getDate());
             VALUES.put(COLUMNS_TRANSACTIONS[8], transaction.getNote());
+            VALUES.put(COLUMNS_TRANSACTIONS[9], transaction.getPayee());
 
             database.insert(TABLE_TRANSACTIONS, null, VALUES);
             database.close();
@@ -697,7 +704,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[5] + ",\n" +
                 TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[6] + ",\n" +
                 TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[7] + ",\n" +
-                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[8] + " \n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[8] + ", \n" +
+                TABLE_TRANSACTIONS + "." + COLUMNS_TRANSACTIONS[9] + " \n" +
             "FROM \n" +
                 TABLE_TRANSACTIONS + " \n";
 
@@ -820,6 +828,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         double amount;
         String date;
         String note;
+        String payee;
 
         for(int i = 0; i < cursor.getCount(); i ++) {
             accountFromId = cursor.getInt(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[2]));
@@ -830,8 +839,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             amount = cursor.getDouble(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[6]));
             date = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[7]));
             note = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[8]));
+            payee = cursor.getString(cursor.getColumnIndex(COLUMNS_TRANSACTIONS[9]));
 
-            transactionList.add(new Transaction(accountFromId,accountToId,type,locale,symbol,amount,date,note));
+            transactionList.add(new Transaction(accountFromId,accountToId,type,locale,symbol,amount,date,note, payee));
 
             cursor.moveToNext();
         }

@@ -9,9 +9,10 @@ class Transaction {
     private String symbol;
     private String date;
     private String note;
+    private String payee;
 
     Transaction(int accountFromId, int accountToId, String type,String locale, String symbol,
-                double amount, String date, String note) {
+                double amount, String date, String note, String payee) {
 
         this.accountFromId = accountFromId;
         this.accountToId = accountToId;
@@ -21,6 +22,7 @@ class Transaction {
         this.amount = amount;
         this.date = date;
         this.note = note;
+        this.payee = payee;
     }
 
     int getAccountFromId() {
@@ -54,6 +56,8 @@ class Transaction {
     String getNote() {
         return note;
     }
+
+    String getPayee() { return payee; }
 
     //no editing of the transactions allowed, read only, no set methods
 }

@@ -15,6 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,6 +44,8 @@ public class TransactionsNewFragment extends Fragment {
         final int accountId = getArguments().getInt("accountId");
 
         final EditText editTextNote = view.findViewById(R.id.editTextNote);
+        final EditText editTextPayee = view.findViewById(R.id.editTextPayee);
+        final EditText editTextDate = view.findViewById(R.id.editTextDate);
 
         final Account[] accountsList = databaseHelper.getAccountList(userId);
         final String spinnerString[] = new String[accountsList.length];
@@ -109,8 +112,11 @@ public class TransactionsNewFragment extends Fragment {
         final Button buttonApply = view.findViewById(R.id.buttonTransaction);
         buttonApply.setOnTouchListener(onTouchListener);//ignore this warning...
         buttonApply.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SimpleDateFormat")
             public void onClick(View v) {
                 String amountString = editTextAmount.getText().toString();
+                final String dateString = editTextDate.getText().toString();
+
                 Account account = null;
 
                 //find out which accounts were selected and get their Ids
@@ -121,49 +127,58 @@ public class TransactionsNewFragment extends Fragment {
                     }
                 }
 
-                if(!amountString.isEmpty() && account != null) {
+                if(!amountString.isEmpty() && !dateString.isEmpty() && !editTextPayee.getText().toString().isEmpty() && account != null) {
                     try {
-                        final String transactionType = spinnerTransactionType.getSelectedItem().toString();
+                        //check to see if the inputted date is valid, will throw exception on illegal date
+                        final Calendar calendar = Calendar.getInstance();
+                        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        simpleDateFormat.setLenient(false);
 
-                        double amount = Double.parseDouble(amountString);
+                        calendar.setTime(simpleDateFormat.parse(dateString));
 
-                        if(radioButtonExpense.isChecked()) {
-                            //take money out of the users account, can't input signed numbers
-                            amount *= -1;
+                        try {
+                            final String transactionType = spinnerTransactionType.getSelectedItem().toString();
+
+                            double amount = Double.parseDouble(amountString);
+
+                            if(radioButtonExpense.isChecked()) {
+                                //take money out of the users account, can't input signed numbers
+                                amount *= -1;
+                            }
+
+                            //update the account
+                            account.setCurrentBalance(account.getCurrentBalance() + amount);
+
+                            databaseHelper.updateAccount(userId, account);
+
+                            //accountTo will be -1, since this is income / expense
+                            //transaction id is -1, since its new
+                            final Transaction transaction = new Transaction(account.getId(),-1, transactionType,account.getLocale(),account.getSymbol(), amount, dateString, editTextNote.getText().toString(), editTextPayee.getText().toString());
+
+                            //record the transaction in the table
+                            if(databaseHelper.createNewTransaction(transaction, userId)) {
+                                Toast.makeText(getContext(), getResources().getString(R.string.transaction_good), Toast.LENGTH_SHORT).show();
+                            }
+                            else {
+                                Toast.makeText(getContext(), getResources().getString(R.string.transaction_bad), Toast.LENGTH_SHORT).show();
+                            }
+
+                            Bundle args = new Bundle();
+                            args.putString("fragment", "Accounts");
+                            args.putInt("accountId", -1);
+
+                            onCompleteListener.onCompleteLaunchFragment(args);
                         }
-
-                        //update the account
-                        account.setCurrentBalance(account.getCurrentBalance() + amount);
-
-                        databaseHelper.updateAccount(userId, account);
-
-                        //record the transaction in the table
-                        final Date currentTime = Calendar.getInstance().getTime();
-                        @SuppressLint("SimpleDateFormat") String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
-
-                        //accountTo will be -1, since this is income / expense
-                        //transaction id is -1, since its new
-                        Transaction transaction = new Transaction(account.getId(),-1, transactionType,account.getLocale(),account.getSymbol(), amount, date, editTextNote.getText().toString());
-
-                        if(databaseHelper.createNewTransaction(transaction, userId)) {
-                            Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();
+                        catch(Exception exception) {
+                            Toast.makeText(getContext(), getContext().getResources().getString(R.string.toast_invalid_money), Toast.LENGTH_SHORT).show();
                         }
-                        else {
-                            Toast.makeText(getContext(), "Failed to record the transaction", Toast.LENGTH_SHORT).show();
-                        }
-
-                        Bundle args = new Bundle();
-                        args.putString("fragment", "Accounts");
-                        args.putInt("accountId", -1);
-
-                        onCompleteListener.onCompleteLaunchFragment(args);
                     }
-                    catch(Exception exception) {
-                        Toast.makeText(getContext(), "Invalid Money input", Toast.LENGTH_SHORT).show();
+                    catch (Exception exception) {
+                        Toast.makeText(getContext(), getContext().getResources().getString(R.string.invalid_date), Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
-                    Toast.makeText(getContext(), "(*) Required fields missing", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.Toast_Required), Toast.LENGTH_SHORT).show();
                 }
             }
         });

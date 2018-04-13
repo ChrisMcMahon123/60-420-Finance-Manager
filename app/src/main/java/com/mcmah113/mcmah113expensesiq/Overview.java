@@ -3,6 +3,7 @@ package com.mcmah113.mcmah113expensesiq;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class Overview extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -161,6 +164,10 @@ public class Overview extends AppCompatActivity implements
                 //in need of an API call, lets do it
                 Log.d("FIXER.io", "NEED TO UPDATE");
 
+                for(String string : GlobalConstants.getLocaleArray()) {
+                    Log.d("value", string);
+                }
+
                 hashMapExchangeRates = new FixerCurrencyAPI().execute(GlobalConstants.getLocaleArray()).get();
 
                 if(hashMapExchangeRates != null) {
@@ -169,7 +176,7 @@ public class Overview extends AppCompatActivity implements
                     GlobalConstants.setCurrencyExchangeFallBack(false);
                     GlobalConstants.setHashMapExchangeRates(hashMapExchangeRates);
                     databaseHelper.setBackupExchangeRates(hashMapExchangeRates, 0);
-                    Toast.makeText(this, "Successfully updated currency exchange rates", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getResources().getString(R.string.fixer_success), Toast.LENGTH_LONG).show();
                 }
                 else {
                     //API call failed!
@@ -178,12 +185,15 @@ public class Overview extends AppCompatActivity implements
                     GlobalConstants.setCurrencyExchangeFallBack(true);
 
                     if(GlobalConstants.getCurrencyExchangeFallBack()) {
-                        Toast.makeText(this, "Failed to get Exchange Rates\nAssuming 1:1 exchange ratio", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getResources().getString(R.string.fixer_failed), Toast.LENGTH_LONG).show();
                     }
                     else {
-                        Toast.makeText(this, "Failed to get Exchange Rates\nUsing stored rates as of\n" + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getResources().getString(R.string.fixer_failed_backup) + " " + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
                     }
                 }
+            }
+            else {
+                GlobalConstants.setHashMapExchangeRates(hashMapExchangeRates);
             }
         }
         catch (Exception exception) {
@@ -197,12 +207,19 @@ public class Overview extends AppCompatActivity implements
             GlobalConstants.setCurrencyExchangeFallBack(true);
 
             if(GlobalConstants.getCurrencyExchangeFallBack()) {
-                Toast.makeText(this, "Failed to get Exchange Rates\nAssuming 1:1 exchange ratio", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getResources().getString(R.string.fixer_failed), Toast.LENGTH_LONG).show();
             }
             else {
-                Toast.makeText(this, "Failed to get Exchange Rates\nUsing stored rates as of\n" + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getResources().getString(R.string.fixer_failed_backup) + " " + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
             }
         }
+
+        //load the users default language
+        Locale LanguageLocale = new Locale(databaseHelper.getUserSettings(userId).get("language"));
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        Configuration configuration = getResources().getConfiguration();
+        configuration.locale = LanguageLocale;
+        getResources().updateConfiguration(configuration, displayMetrics);
     }
 
     public void onBackPressed() {
@@ -312,7 +329,7 @@ public class Overview extends AppCompatActivity implements
                 Intent intent = new Intent(this, Login.class);
                 intent.putExtra("username", username);
                 startActivity(intent);
-                Toast.makeText(this, "Successfully logged out", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.logout), Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.menuSettings:
                 //launch the settings dialog option
@@ -454,10 +471,10 @@ public class Overview extends AppCompatActivity implements
                     break;
                 case "Hide Account":
                     if(databaseHelper.hideAccount(accountId, userId)) {
-                        Toast.makeText(this, "Account Hidden", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getResources().getString(R.string.account_hide_toast), Toast.LENGTH_SHORT).show();
                     }
                     else {
-                        Toast.makeText(this, "Failed to hide account", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getResources().getString(R.string.account_hide_failed_toast), Toast.LENGTH_SHORT).show();
                     }
 
                     //refresh accounts fragment
@@ -514,10 +531,10 @@ public class Overview extends AppCompatActivity implements
     public void onCompleteDeleteAccount(Bundle callback) {
         if("Yes".equals(callback.getString("response"))) {
             if(databaseHelper.deleteAccount(callback.getInt("accountId"), userId)) {
-                Toast.makeText(this, "Account Deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.account_deleted_toast), Toast.LENGTH_SHORT).show();
             }
             else {
-                Toast.makeText(this, "Failed to Delete Account", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.account_deleted_failed_toast), Toast.LENGTH_SHORT).show();
             }
 
             //refresh accounts fragment

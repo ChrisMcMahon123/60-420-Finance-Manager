@@ -27,7 +27,7 @@ class GlobalConstants {
     }
 
     private static final int colorPalette[] = {
-        Color.rgb(193, 37, 82),   Color.rgb(255, 102, 0),   Color.rgb(245, 199, 0),
+        Color.rgb(245, 199, 0),
         Color.rgb(106, 150, 31),  Color.rgb(179, 100, 53),
         Color.rgb(64, 89, 128),   Color.rgb(149, 165, 124), Color.rgb(217, 184, 162),
         Color.rgb(191, 134, 134), Color.rgb(179, 48, 80),
@@ -36,7 +36,7 @@ class GlobalConstants {
         Color.rgb(207, 248, 246), Color.rgb(148, 212, 212), Color.rgb(136, 180, 187),
         Color.rgb(118, 174, 175), Color.rgb(42, 109, 130),
         Color.rgb(217, 80, 138),  Color.rgb(254, 149, 7),   Color.rgb(254, 247, 120),
-        Color.rgb(106, 167, 134), Color.rgb(53, 194, 209)
+        Color.rgb(106, 167, 134), Color.rgb(53, 194, 209),Color.rgb(193, 37, 82),Color.rgb(255, 102, 0)
     };
 
     static int[] getColorPalette() {
@@ -115,30 +115,10 @@ class GlobalConstants {
         Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
         Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
         Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
-        Locale.CHINESE.getDisplayLanguage() + " (" + Locale.CHINESE.getLanguage() + ")"
+        "Spanish (es)"
     };
 
-    private static final String typesArray[] = {"Bank", "Cash", "Credit"};
-
-    private static final String expenseReports[][] = {
-        {"Expense by Category", "View all expenses sorted by category type"},
-        {"Daily Expense", "View the last seven days breakdown of your expenses by specific accounts"},
-        {"Monthly Expense", "View a month by month breakdown of your expenses by specific accounts"}
-    };
-
-    private static final String incomeReports[][] = {
-        {"Income by Category", "View all incomes sorted by category type"},
-        {"Daily Income", "View the last seven days breakdown of your income by specific accounts"},
-        {"Monthly Income", "View a month by month breakdown of your income by specific accounts"}
-    };
-
-    private static final String cashFlowReports[][] = {
-        {"Income Vs Expense", "Compare your total expense and income"}
-    };
-
-    private static final String balanceReports[][] = {
-        {"Daily Balance", "Compare your income and expenses on a daily basis"}
-    };
+    private static final String typesArray[] = {"Bank", "Cash"};
 
     private static final String transactionPeriods[] = {
         "All Time",
@@ -161,22 +141,6 @@ class GlobalConstants {
 
     static String[] getCurrencyArray() {
         return currencyArray;
-    }
-
-    static String[][] getExpenseReports() {
-        return expenseReports;
-    }
-
-    static String[][] getIncomeReports() {
-        return incomeReports;
-    }
-
-    static String[][] getCashFlowReports() {
-        return cashFlowReports;
-    }
-
-    static String[][] getBalanceReports() {
-        return balanceReports;
     }
 
     static String[] getTransactionPeriods() {

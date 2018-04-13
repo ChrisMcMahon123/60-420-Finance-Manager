@@ -51,6 +51,8 @@ public class ReportsGraphFragment extends Fragment {
     private int accountId;
     private LinearLayout linearLayoutGraphArea;
     private final String weekList[] = new String[7];
+    private String globalStartDay;
+    private String globalEndDay;
 
     public ReportsGraphFragment() {
 
@@ -164,7 +166,6 @@ public class ReportsGraphFragment extends Fragment {
 
         final Date currentTime = Calendar.getInstance().getTime();
         @SuppressLint("SimpleDateFormat") final String today = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
-
 
         int monthInt = Integer.parseInt(today.substring(today.indexOf('-')+1, today.lastIndexOf('-'))) -1;
         int dayInt = Integer.parseInt(today.substring(today.lastIndexOf('-')+1, today.length()));
@@ -531,8 +532,16 @@ public class ReportsGraphFragment extends Fragment {
                     //database ordered by date! so the order is least to greatest
                     //earliest date in the set is at the end
                     //this the line charts X-Axis
-                    final String endDate = transactionList[0].getDate();
-                    date = transactionList[transactionList.length-1].getDate();
+                    String endDate;
+
+                    if(globalStartDay.isEmpty() || globalEndDay.isEmpty()) {
+                        endDate = transactionList[0].getDate();
+                        date = transactionList[transactionList.length-1].getDate();
+                    }
+                    else {
+                        endDate = globalEndDay;
+                        date = globalStartDay;
+                    }
 
                     final ArrayList<String> calendarsList = new ArrayList<>();
 
@@ -685,7 +694,6 @@ public class ReportsGraphFragment extends Fragment {
 
                     dayOfWeekCalender.add(Calendar.DAY_OF_WEEK, 1);
                 }
-
                 break;
             case 3:
                 //today
@@ -693,6 +701,9 @@ public class ReportsGraphFragment extends Fragment {
                 endDay = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
                 break;
         }
+
+        globalStartDay = startDay;
+        globalEndDay = endDay;
 
         return databaseHelper.getTransactionsRange(accountId, userId, startDay, endDay);
     }
@@ -731,9 +742,12 @@ public class ReportsGraphFragment extends Fragment {
                 j = i;
             }
             else {
-                if(j > 0) {
+                if(j >= 0) {
                     //add the last valid entry
                     entriesExpense.add(new Entry(i, hashMapExpense.get(daysList.get(j)).floatValue()));
+                }
+                else {
+                    entriesExpense.add(new Entry(i, 0));
                 }
            }
         }
@@ -747,23 +761,26 @@ public class ReportsGraphFragment extends Fragment {
                 j = i;
             }
             else {
-                if(j > 0) {
+                if(j >= 0) {
                     //add the last valid entry
                     entriesIncome.add(new Entry(i, hashMapIncome.get(daysList.get(j)).floatValue()));
+                }
+                else {
+                    entriesIncome.add(new Entry(i, 0));
                 }
             }
         }
 
         final LineDataSet lineDataSetExpense = new LineDataSet(entriesExpense, "Expense");
         lineDataSetExpense.setAxisDependency(YAxis.AxisDependency.LEFT);
-        lineDataSetExpense.setCircleColor(Color.BLACK);
+        lineDataSetExpense.setCircleColor(colorPalette[0]);
         lineDataSetExpense.setColor(colorPalette[0]);
         lineDataSetExpense.setLineWidth(3);
         lineDataSetExpense.setValueTextSize(18);
 
         final LineDataSet lineDataSetIncome = new LineDataSet(entriesIncome, "Income");
         lineDataSetIncome.setAxisDependency(YAxis.AxisDependency.LEFT);
-        lineDataSetIncome.setCircleColor(Color.BLACK);
+        lineDataSetIncome.setCircleColor(colorPalette[1]);
         lineDataSetIncome.setColor(colorPalette[1]);
         lineDataSetIncome.setLineWidth(3);
         lineDataSetIncome.setValueTextSize(18);
@@ -779,19 +796,19 @@ public class ReportsGraphFragment extends Fragment {
         }
 
         final LineData data = new LineData(dataSets);
-
+        data.setDrawValues(false);
         lineChart.setData(data);
-        lineChart.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1500));
-        lineChart.setScaleEnabled(false);
-        lineChart.setTouchEnabled(false);
+        lineChart.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1500));
+        lineChart.setScaleEnabled(true);
+        lineChart.setTouchEnabled(true);
 
         final XAxis xAxis = lineChart.getXAxis();
-        xAxis.setGranularity(1);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextSize(18);
         xAxis.setLabelRotationAngle(270);
         xAxis.setLabelCount(daysList.size());
         xAxis.setAxisMaximum(daysList.size()-1);
+        xAxis.setAvoidFirstLastClipping(true);
+        xAxis.setGranularity(1);
 
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             public String getFormattedValue(float value, AxisBase axis) {
@@ -800,7 +817,7 @@ public class ReportsGraphFragment extends Fragment {
         });
 
         final YAxis yAxisLeft = lineChart.getAxisLeft();
-        yAxisLeft.setEnabled(false);
+        yAxisLeft.setEnabled(true);
 
         final YAxis yAxisRight = lineChart.getAxisRight();
         yAxisRight.setEnabled(false);
@@ -834,7 +851,7 @@ public class ReportsGraphFragment extends Fragment {
         LinearLayout view = (LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null);
 
         TextView textViewLegend = view.findViewById(R.id.textViewLegend);
-        textViewLegend.setText("Expense");
+        textViewLegend.setText(getContext().getResources().getString(R.string.expense_graph_label));
 
         ImageView imageViewLegend = view.findViewById(R.id.imageViewLegend);
         imageViewLegend.setColorFilter(colorPalette[0], PorterDuff.Mode.SRC_ATOP);
@@ -848,7 +865,7 @@ public class ReportsGraphFragment extends Fragment {
         view = (LinearLayout) layoutInflater.inflate(R.layout.layout_graph_legend, null);
 
         textViewLegend = view.findViewById(R.id.textViewLegend);
-        textViewLegend.setText("Income");
+        textViewLegend.setText(getContext().getResources().getString(R.string.income_graph_label));
 
         imageViewLegend = view.findViewById(R.id.imageViewLegend);
         imageViewLegend.setColorFilter(colorPalette[1], PorterDuff.Mode.SRC_ATOP);
@@ -921,11 +938,11 @@ public class ReportsGraphFragment extends Fragment {
 
         if(incomeExpense.equals("Income")) {
             //dealing with income
-            average = "Average " + type + " income is " + userData.get("symbol") + String.format("%.2f", totalAmount / divisor);
+            average = getContext().getResources().getString(R.string.average_report_text) + " " + type + " " + getContext().getResources().getString(R.string.income_is_report_text) + " " + userData.get("symbol") + String.format("%.2f", totalAmount / divisor);
         }
         else if(incomeExpense.equals("Expense")) {
             //dealing with expense
-            average = "Average " + type + " expense is " + userData.get("symbol") + String.format("%.2f", totalAmount / divisor);
+            average = getContext().getResources().getString(R.string.average_report_text) + " " + type + " " + getContext().getResources().getString(R.string.expense_is_report) + " "  + userData.get("symbol") + String.format("%.2f", totalAmount / divisor);
         }
 
         final TextView textViewTitle = new TextView(getContext());
@@ -958,7 +975,7 @@ public class ReportsGraphFragment extends Fragment {
         final List<PieEntry> entries = new ArrayList<>();
 
         for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
-            entries.add(new PieEntry((float) (pair.getValue() / totalAmount), pair.getKey()));
+            entries.add(new PieEntry((float) (pair.getValue() / Math.abs(totalAmount)), pair.getKey()));
 
             view = linearLayoutLegendEntry.get(i);
             textViewLegend = view.findViewById(R.id.textViewLegend);
@@ -1023,7 +1040,7 @@ public class ReportsGraphFragment extends Fragment {
         textView.setTextSize(18);
         textView.setTextColor(Color.BLACK);
         textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        textView.setText("No Transactions \n Unable to Show Report");
+        textView.setText(getContext().getResources().getString(R.string.no_transactions_available));
         linearLayoutGraphArea.addView(textView);
     }
 }

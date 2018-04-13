@@ -23,7 +23,12 @@ public class ReportsCashFlowFragment extends Fragment {
 
     public void onViewCreated(View view, Bundle bundle) {
         final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
-        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getCashFlowReports());
+
+        final String cashFlowReports[][] = {
+                {"Income Vs Expense", getContext().getResources().getString(R.string.cashflow_report1_text)}
+        };
+
+        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), cashFlowReports);
 
         //set up the listView properties
         final ListView listView = view.findViewById(R.id.listViewCashFlow);

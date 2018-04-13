@@ -12,19 +12,26 @@
 
         <TextView
             android:id="@+id/textViewType"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textViewAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="25dp"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
             android:textAlignment="viewEnd"
             android:textSize="18sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewPayee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,16 +40,16 @@
 
         <TextView
             android:id="@+id/textViewAccount"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:textSize="14sp" />
 
         <TextView
             android:id="@+id/textViewDate"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:textAlignment="viewEnd"
             android:textSize="14sp" />
 
@@ -51,6 +58,7 @@
     <TextView
         android:id="@+id/textViewNote"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textSize="14sp" />
 
 </LinearLayout>

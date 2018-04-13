@@ -71,21 +71,22 @@ public class SignUp extends AppCompatActivity {
 
                 if(username.isEmpty() || password.isEmpty() || passwordConfirm.isEmpty()) {
                     //missing required form fields
-                    Toast.makeText(SignUp.this, "(*) Fields are required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignUp.this, getResources().getString(R.string.Toast_Required), Toast.LENGTH_SHORT).show();
                 }
                 else {
                     //all form fields are present
                     if(!password.equals(passwordConfirm)) {
                         //passwords don't line up
-                        Toast.makeText(SignUp.this, "Password fields don't match", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SignUp.this, getResources().getString(R.string.passwords_no_match), Toast.LENGTH_SHORT).show();
                     }
                     else {
                         //all required form fields are filled out, check if valid numbers
-                        final String language = spinnerLanguage.getSelectedItem().toString();
+                        String language = spinnerLanguage.getSelectedItem().toString();
                         String locale = spinnerCurrency.getSelectedItem().toString();
 
                         //only want the code inside the brackets
                         locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
+                        language = language.substring(language.indexOf('(') + 1, language.indexOf(')'));
 
                         final String bankString = editTextBankAccount.getText().toString();
                         final String cashString = editTextCash.getText().toString();
@@ -130,7 +131,7 @@ public class SignUp extends AppCompatActivity {
 
             if(databaseHelper.userSignUp(username, password, locale, language, bankAccount, cashAccount)) {
                 //valid sign up, return to login activity
-                Toast.makeText(this, "Sign up successfull", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.signup_good), Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(this, Login.class);
                 intent.putExtra("username", username);
@@ -138,12 +139,12 @@ public class SignUp extends AppCompatActivity {
                 startActivity(intent);
             } else {
                 //username is already being used or something else failed
-                Toast.makeText(this, "Username is already taken", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getResources().getString(R.string.uname_taken), Toast.LENGTH_SHORT).show();
             }
         }
         catch(Exception exception) {
             //invalid bank account or cash account input
-            Toast.makeText(this, "Invalid money inputs", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getResources().getString(R.string.toast_invalid_money), Toast.LENGTH_SHORT).show();
         }
     }
 

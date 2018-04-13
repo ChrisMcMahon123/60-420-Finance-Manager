@@ -238,7 +238,7 @@ public class OverviewFragment extends Fragment {
     public void getRecentTransactions(int userId, Transaction transactionList[]) {
         //show transaction histories for each account recently (this week)
         final LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        View viewTransactions;
+        View row;
 
         int count = 0;
 
@@ -246,90 +246,85 @@ public class OverviewFragment extends Fragment {
             textViewNoTransactions.setVisibility(View.GONE);
 
             for(Transaction transaction : transactionList) {
-                if(count == 5) {
+                if (count == 5) {
                     break;
+                } else {
+                    count++;
                 }
-                else {
-                    count ++;
-                }
 
-                viewTransactions = layoutInflater.inflate(R.layout.layout_listview_transactions, null);
+                row = layoutInflater.inflate(R.layout.layout_listview_transactions, null);
 
-                if(transaction != null) {
-                    final Account account = databaseHelper.getAccountInfo(transaction.getAccountFromId(), userId);
+                if (transaction != null) {
+                    //get the accounts details to display
+                    final Account accountFrom = databaseHelper.getAccountInfo(transaction.getAccountFromId(), userId);
 
-                    if(account != null) {
-                        final TextView textViewName = viewTransactions.findViewById(R.id.textViewAccount);
-                        textViewName.setText(account.getName());
+                    final TextView textViewName = row.findViewById(R.id.textViewAccount);
+                    textViewName.setText(accountFrom.getName());
 
-                        final TextView textViewAmount = viewTransactions.findViewById(R.id.textViewAmount);
+                    final TextView textViewAmount = row.findViewById(R.id.textViewAmount);
 
-                        if (transaction.getAmount() > 0) {
-                            textViewAmount.setText(String.format(transaction.getSymbol() + "%.2f", transaction.getAmount()));
-                            textViewAmount.setTextColor(getContext().getResources().getColor(R.color.colorGreen, getContext().getTheme()));
-                        }
-                        else if (transaction.getAmount() < 0) {
-                            textViewAmount.setText(String.format(transaction.getSymbol() + "%.2f", (-1 * transaction.getAmount())));
-                            textViewAmount.setTextColor(getContext().getResources().getColor(R.color.colorRed, getContext().getTheme()));
-                        }
-
-                        final TextView textViewDate = viewTransactions.findViewById(R.id.textViewDate);
-                        textViewDate.setText(transaction.getDate());
-
-                        final TextView textViewNote = viewTransactions.findViewById(R.id.textViewNote);
-                        final String transactionNote = getContext().getResources().getString(R.string.note_text) + "\n" + transaction.getNote();
-                        textViewNote.setText(transactionNote);
-
-                        final TextView textViewType = viewTransactions.findViewById(R.id.textViewType);
-
-                        if(transaction.getAccountToId() > 0) {
-                            //need to display a little more information like who the money went to / where it came from
-                            final Account accountTo = databaseHelper.getAccountInfo(transaction.getAccountToId(), userId);
-                            String type;
-
-                            if(accountTo != null) {
-                                if(accountTo.getHiddenFlag() && !DatabaseHelper.getDisplayHiddenFlag()) {
-                                    if(transaction.getType().equals("Transfer")) {
-                                        //sent money to an account
-                                        type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + getContext().getResources().getString(R.string.account_hidden_text);
-                                    }
-                                    else {
-                                        //received money from an account
-                                        type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + getContext().getResources().getString(R.string.account_hidden_text);
-                                    }
-                                }
-                                else {
-                                    if (transaction.getType().equals("Transfer")) {
-                                        //sent money to an account
-                                        type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + accountTo.getName();
-                                    }
-                                    else {
-                                        //received money from an account
-                                        type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + accountTo.getName();
-                                    }
-                                }
-                            }
-                            else {
-                                if (transaction.getType().equals("Transfer")) {
-                                    //sent money to an account
-                                    type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + getContext().getResources().getString(R.string.account_deleted_transaction);
-                                }
-                                else {
-                                    //received money from an account
-                                    type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + getContext().getResources().getString(R.string.account_deleted_transaction);
-                                }
-                            }
-
-                            textViewType.setText(type);
-                        }
-                        else {
-                            //show the transaction type
-                            textViewType.setText(transaction.getType());
-                        }
+                    if (transaction.getAmount() > 0) {
+                        textViewAmount.setTextColor(getContext().getResources().getColor(R.color.colorGreen, getContext().getTheme()));
+                    } else if (transaction.getAmount() < 0) {
+                        textViewAmount.setTextColor(getContext().getResources().getColor(R.color.colorRed, getContext().getTheme()));
                     }
 
-                    linearLayoutRecentTransactions.addView(viewTransactions);
+                    textViewAmount.setText(String.format(transaction.getSymbol() + "%.2f", (Math.abs(transaction.getAmount()))));
+
+                    final TextView textViewDate = row.findViewById(R.id.textViewDate);
+                    textViewDate.setText(transaction.getDate());
+
+                    final TextView textViewNote = row.findViewById(R.id.textViewNote);
+                    final String transactionNote = getContext().getResources().getString(R.string.note_text) + "\n" + transaction.getNote();
+                    textViewNote.setText(transactionNote);
+
+                    final TextView textViewType = row.findViewById(R.id.textViewType);
+                    final TextView textViewPayee = row.findViewById(R.id.textViewPayee);
+
+                    if (transaction.getAccountToId() > 0 && (transaction.getType().equals("Transfer") || transaction.getType().equals("Receive"))) {
+                        //need to display a little more information like who the money went to / where it came from
+                        textViewPayee.setText(getContext().getResources().getString(R.string.transferred_funds_label));
+
+                        final Account accountTo = databaseHelper.getAccountInfo(transaction.getAccountToId(), userId);
+                        String type = "";
+
+                        if (accountTo != null) {
+                            if (accountTo.getHiddenFlag() && !DatabaseHelper.getDisplayHiddenFlag()) {
+                                if (transaction.getType().equals("Transfer")) {
+                                    //sent money to an account
+                                    type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + getContext().getResources().getString(R.string.account_hidden_text);
+                                } else if (transaction.getType().equals("Receive")) {
+                                    //received money from an account
+                                    type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + getContext().getResources().getString(R.string.account_hidden_text);
+                                }
+                            } else {
+                                if (transaction.getType().equals("Transfer")) {
+                                    //sent money to an account
+                                    type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + accountTo.getName();
+                                } else if (transaction.getType().equals("Receive")) {
+                                    //received money from an account
+                                    type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + accountTo.getName();
+                                }
+                            }
+                        } else {
+                            if (transaction.getType().equals("Transfer")) {
+                                //sent money to an account
+                                type = getContext().getResources().getString(R.string.transferred_money_to_text) + " " + getContext().getResources().getString(R.string.account_deleted_transaction);
+                            } else if (transaction.getType().equals("Receive")) {
+                                //received money from an account
+                                type = getContext().getResources().getString(R.string.recieved_money_from_transaction) + " " + getContext().getResources().getString(R.string.account_deleted_transaction);
+                            }
+                        }
+
+                        textViewType.setText(type);
+                    } else {
+                        //show the transaction type
+                        textViewPayee.setText(transaction.getPayee());
+                        textViewType.setText(transaction.getType());
+                    }
                 }
+
+                linearLayoutRecentTransactions.addView(row);
             }
         }
         else {
@@ -474,7 +469,7 @@ public class OverviewFragment extends Fragment {
         final List<PieEntry> entries = new ArrayList<>();
 
         for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
-            entries.add(new PieEntry((float) (pair.getValue() / totalAmount), pair.getKey()));
+            entries.add(new PieEntry((float) (pair.getValue() / Math.abs(totalAmount)), pair.getKey()));
 
             view = linearLayoutLegendEntry.get(i);
             textViewLegend = view.findViewById(R.id.textViewLegend);
@@ -545,7 +540,7 @@ public class OverviewFragment extends Fragment {
         textView.setTextSize(18);
         textView.setTextColor(Color.BLACK);
         textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        textView.setText("No Transactions \n Unable to Show Report");
+        textView.setText(getContext().getResources().getString(R.string.zero_transactions_no_show));
         return textView;
     }
 

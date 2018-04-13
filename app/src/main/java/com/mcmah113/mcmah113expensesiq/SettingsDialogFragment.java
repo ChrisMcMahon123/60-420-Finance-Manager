@@ -2,10 +2,12 @@ package com.mcmah113.mcmah113expensesiq;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.res.Configuration;
 import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -14,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 public class SettingsDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
@@ -55,7 +58,7 @@ public class SettingsDialogFragment extends DialogFragment {
 
         //set default selected based on user settings
         for(int i = 0; i < languageArray.length; i ++) {
-            if(userData.get("language").equals(languageArray[i])) {
+            if(languageArray[i].contains(userData.get("language"))) {
                 spinnerLanguage.setSelection(i);
                 break;
             }
@@ -75,21 +78,29 @@ public class SettingsDialogFragment extends DialogFragment {
         }
 
         settingsDialog.setView(view);
-        settingsDialog.setTitle("User Settings");
-        settingsDialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+        settingsDialog.setTitle(getContext().getResources().getString(R.string.user_settings_dialog));
+        settingsDialog.setPositiveButton(getContext().getResources().getString(R.string.save_dialog_settings), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                final String language = spinnerLanguage.getSelectedItem().toString();
+                String language = spinnerLanguage.getSelectedItem().toString();
                 String locale = spinnerCurrency.getSelectedItem().toString();
 
                 //only want the code inside the brackets
                 locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
+                language = language.substring(language.indexOf('(') + 1, language.indexOf(')'));
 
-                //update the user settings, flags dont get touched here, so return the same values
+                //update the user settings, flags don't get touched here, so return the same values
                 if(databaseHelper.setUserSettings(Overview.getUserId(), language, locale,userData.get("flag1"),userData.get("flag2"),userData.get("flag3"),userData.get("flag4"))) {
-                    Toast.makeText(getContext(), "User Settings Updated", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.user_settings_good), Toast.LENGTH_SHORT).show();
+
+                    //load the users default language
+                    Locale LanguageLocale = new Locale(language);
+                    DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
+                    Configuration configuration = getContext().getResources().getConfiguration();
+                    configuration.locale = LanguageLocale;
+                    getContext().getResources().updateConfiguration(configuration, displayMetrics);
                 }
                 else {
-                    Toast.makeText(getContext(), "Failed to Update User Settings", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.user_settings_failed), Toast.LENGTH_SHORT).show();
                 }
 
                 //allow hidden accounts to be shown
@@ -97,7 +108,7 @@ public class SettingsDialogFragment extends DialogFragment {
                 onCompleteListener.onCompleteSettingsChange();
             }
         });
-        settingsDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        settingsDialog.setNegativeButton(getContext().getResources().getString(R.string.user_settings_cancel), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 onCompleteListener.onCompleteSettingsChange();
             }

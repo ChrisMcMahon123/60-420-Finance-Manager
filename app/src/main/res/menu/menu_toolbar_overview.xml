@@ -5,20 +5,18 @@
     <item
         android:id="@+id/menuOverviewCustomize"
         android:icon="@drawable/ic_visibility_black_24dp"
-        android:title="@string/settings_overview_menu"
-        app:showAsAction="always"></item>
+        android:title="Settings"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/menuSettings"
-        android:title="@string/settings_overview_menu"
+        android:title="Settings"
         android:icon="@drawable/ic_settings_black_24dp"
-        app:showAsAction="never">
-    </item>
+        app:showAsAction="never"/>
 
     <item
         android:id="@+id/menuLogout"
-        android:title="@string/logout_overview_menu"
+        android:title="Logout"
         android:icon="@drawable/ic_exit_to_app_black_24dp"
-        app:showAsAction="never">
-    </item>
+        app:showAsAction="never"/>
 </menu>

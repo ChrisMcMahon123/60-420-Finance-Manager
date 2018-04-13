@@ -63,9 +63,9 @@ public class OverviewCustomizeDialogFragment extends DialogFragment {
         }
 
         customizeDialog.setView(view);
-        customizeDialog.setTitle("Customize Overview");
-        customizeDialog.setMessage("Choose what to show or hide on the Overview screen");
-        customizeDialog.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
+        customizeDialog.setTitle(getContext().getResources().getString(R.string.customize_overview_title));
+        customizeDialog.setMessage(getContext().getResources().getString(R.string.customize_stuff_text));
+        customizeDialog.setPositiveButton(getContext().getResources().getString(R.string.apply_customize_label), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 //update the user settings, flags are the only thing that gets touched here
                 //so return the same values for everything else
@@ -98,16 +98,16 @@ public class OverviewCustomizeDialogFragment extends DialogFragment {
                 }
 
                 if(databaseHelper.setUserSettings(Overview.getUserId(), userData.get("language"), userData.get("locale"),flag1,flag2,flag3,flag4)) {
-                    Toast.makeText(getContext(), "Overview updated", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.overview_success), Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    Toast.makeText(getContext(), "Failed to update the Overview screen", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.overview_failed), Toast.LENGTH_SHORT).show();
                 }
 
                 onCompleteListener.onCompleteSettingsChange();
             }
         });
-        customizeDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        customizeDialog.setNegativeButton(getContext().getResources().getString(R.string.overview_cancel), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 onCompleteListener.onCompleteSettingsChange();
             }

@@ -118,7 +118,7 @@ public class AccountsEditFragment extends Fragment {
                 locale = locale.substring(locale.indexOf('(') + 1, locale.indexOf(')'));
 
                 if(name.isEmpty() || initialBalanceString.isEmpty() || currentBalanceString.isEmpty()) {
-                    Toast.makeText(getContext(), "(*) Fields are required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getContext().getResources().getString(R.string.Toast_Required), Toast.LENGTH_SHORT).show();
                 }
                 else {
                     try {
@@ -134,19 +134,19 @@ public class AccountsEditFragment extends Fragment {
 
                             if(currentBalance != account.getCurrentBalance()) {
                                 editFlag = true;
-                                note += "Current balance changed from " + account.getCurrentBalance() + " to " + currentBalance + "\n";
+                                note += getContext().getResources().getString(R.string.account_updated_1) + account.getCurrentBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + currentBalance + "\n";
                             }
                             if(initialBalance != account.getInitialBalance()) {
                                 editFlag = true;
-                                note += "Initial balance changed from "+ account.getInitialBalance() + " to " + initialBalance + "\n";
+                                note += getContext().getResources().getString(R.string.account_change_2)+ account.getInitialBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + initialBalance + "\n";
                             }
                             if(!locale.equals(account.getLocale())) {
                                 editFlag = true;
-                                note += "Account locale changed from "+ account.getLocale() + " to " + locale + "\n";
+                                note += getContext().getResources().getString(R.string.account_change_3)+ account.getLocale() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + locale + "\n";
                             }
                             if(!type.equals(account.getType())) {
                                 editFlag = true;
-                                note += "Account type changed from "+ account.getType() + " to " + type + "\n";
+                                note += getContext().getResources().getString(R.string.account_changed_4)+ account.getType() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + type + "\n";
                             }
 
                             //save changes to existing account
@@ -165,24 +165,24 @@ public class AccountsEditFragment extends Fragment {
                                     final Date currentTime = Calendar.getInstance().getTime();
                                     @SuppressLint("SimpleDateFormat") String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
 
-                                    Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), 0, date, note);
+                                    Transaction transaction = new Transaction(account.getId(),-1, "Account Edit",account.getLocale(), account.getSymbol(), 0, date, note, "");
 
                                     databaseHelper.createNewTransaction(transaction, userId);
                                 }
 
-                                Toast.makeText(getContext(), "Saved account changes", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getContext().getResources().getString(R.string.toast_account_changes), Toast.LENGTH_SHORT).show();
                             }
                             else {
-                                Toast.makeText(getContext(), "Failed to save account changes", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getContext().getResources().getString(R.string.toast_failed_account_changes), Toast.LENGTH_SHORT).show();
                             }
                         }
                         else {
                             //no account id, which means we create a new account
                             if(databaseHelper.createAccount(userId, name, type, locale, initialBalance, currentBalance, description, checkboxHiddenAccount.isChecked())) {
-                                Toast.makeText(getContext(), "Account successfully created", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getContext().getResources().getString(R.string.account_success_created), Toast.LENGTH_SHORT).show();
                             }
                             else {
-                                Toast.makeText(getContext(), "Failed to create account", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getContext().getResources().getString(R.string.account_failed_create), Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -196,7 +196,7 @@ public class AccountsEditFragment extends Fragment {
                     }
                     catch(Exception exception) {
                         //invalid bank account or cash account input
-                        Toast.makeText(getContext(), "Invalid money inputs", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getContext().getResources().getString(R.string.toast_invalid_money), Toast.LENGTH_SHORT).show();
                     }
                 }
             }

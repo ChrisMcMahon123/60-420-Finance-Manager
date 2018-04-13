@@ -23,7 +23,12 @@ public class ReportsBalanceFragment extends Fragment {
 
     public void onViewCreated(View view, Bundle bundle) {
         final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
-        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getBalanceReports());
+
+        final String balanceReports[][] = {
+                {"Daily Balance", getContext().getResources().getString(R.string.reports_1_text)}
+        };
+
+        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), balanceReports);
 
         //set up the listView properties
         final ListView listView = view.findViewById(R.id.listviewBalance);

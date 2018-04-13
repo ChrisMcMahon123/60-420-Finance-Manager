@@ -1,6 +1,5 @@
 package com.mcmah113.mcmah113expensesiq;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.support.v4.app.DialogFragment;
@@ -11,10 +10,6 @@ import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 public class TransactionsTransferDialogFragment extends DialogFragment {
     public interface OnCompleteListener {
@@ -102,11 +97,10 @@ public class TransactionsTransferDialogFragment extends DialogFragment {
             databaseHelper.updateAccount(userId, accountTo);
 
             //record the transaction in the table
-            final Date currentTime = Calendar.getInstance().getTime();
-            @SuppressLint("SimpleDateFormat") final String date = new SimpleDateFormat("yyyy-MM-dd").format(currentTime);
+            final String date = getArguments().getString("date");
 
-            final Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"));
-            final Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"));
+            final Transaction transaction1 = new Transaction(accountFromId,accountToId, "Transfer",accountFrom.getLocale(),accountFrom.getSymbol(), (-1 * amount), date, getArguments().getString("note"), "");
+            final Transaction transaction2 = new Transaction(accountToId,accountFromId, "Receive",accountTo.getLocale(), accountTo.getSymbol(), exchangeAmount, date, getArguments().getString("note"), "");
 
             if(databaseHelper.createNewTransaction(transaction1, userId) && databaseHelper.createNewTransaction(transaction2, userId)) {
                 Toast.makeText(getContext(), "Successfully applied the transaction", Toast.LENGTH_SHORT).show();

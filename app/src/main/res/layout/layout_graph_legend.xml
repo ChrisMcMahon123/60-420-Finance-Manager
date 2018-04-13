@@ -22,7 +22,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="5"
         android:paddingStart="5dp"
-        android:text="TextView"
         android:textAlignment="viewStart"
         android:textSize="18sp" />
 
@@ -31,7 +30,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="6"
-        android:text="TextView"
         android:textAlignment="viewStart"
         android:textSize="18sp" />
 </LinearLayout>

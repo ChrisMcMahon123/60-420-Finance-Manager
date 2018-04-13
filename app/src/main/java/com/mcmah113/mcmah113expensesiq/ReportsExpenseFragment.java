@@ -23,7 +23,14 @@ public class ReportsExpenseFragment extends Fragment {
 
     public void onViewCreated(View view, Bundle bundle) {
         final OnCompleteListener onCompleteListener = (OnCompleteListener) getActivity();
-        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), GlobalConstants.getExpenseReports());
+
+        final String expenseReports[][] = {
+                {"Expense by Category", getContext().getResources().getString(R.string.expense_report1)},
+                {"Daily Expense", getContext().getResources().getString(R.string.expense_report2)},
+                {"Monthly Expense", getContext().getResources().getString(R.string.expense_report3)}
+        };
+
+        final ReportsAdapter reportsAdapter = new ReportsAdapter(getContext(), expenseReports);
 
         //set up the listView properties
         final ListView listView = view.findViewById(R.id.listviewExpense);
