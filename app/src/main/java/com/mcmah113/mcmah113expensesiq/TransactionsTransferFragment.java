@@ -55,6 +55,11 @@ public class TransactionsTransferFragment extends Fragment {
         final EditText editTextNote = view.findViewById(R.id.editTextNote);
         final EditText editTextDate = view.findViewById(R.id.editTextDate);
 
+        final Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") final String today = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        editTextDate.setText(today);
+
         //setting the spinners properties
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), R.layout.layout_spinner, spinnerString);
 

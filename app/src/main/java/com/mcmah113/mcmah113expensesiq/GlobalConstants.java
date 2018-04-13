@@ -105,17 +105,16 @@ class GlobalConstants {
     private static final String currencyArray[] = {
         Locale.US.getDisplayCountry() + " (" + Currency.getInstance(Locale.US) + ")",
         Locale.CANADA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CANADA) + ")",
-        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")",
         Locale.UK.getDisplayCountry() + " (" + Currency.getInstance(Locale.UK) + ")",
         Locale.FRANCE.getDisplayCountry() + " (" + Currency.getInstance(Locale.FRANCE) + ")",
-        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")"
+        Locale.CHINA.getDisplayCountry() + " (" + Currency.getInstance(Locale.CHINA) + ")",
+        Locale.JAPAN.getDisplayCountry() + " (" + Currency.getInstance(Locale.JAPAN) + ")"
     };
 
     private static final String languageArray[] = {
         Locale.ENGLISH.getDisplayLanguage() + " (" + Locale.ENGLISH.getLanguage() + ")",
-        Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")",
         Locale.FRENCH.getDisplayLanguage() + " (" + Locale.FRENCH.getLanguage() + ")",
-        "Spanish (es)"
+        Locale.JAPANESE.getDisplayLanguage() + " (" + Locale.JAPANESE.getLanguage() + ")"
     };
 
     private static final String typesArray[] = {"Bank", "Cash"};

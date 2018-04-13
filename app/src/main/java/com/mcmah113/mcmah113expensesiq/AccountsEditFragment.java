@@ -3,9 +3,11 @@ package com.mcmah113.mcmah113expensesiq;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -22,6 +24,7 @@ public class AccountsEditFragment extends Fragment {
     private static final String currencyArray[] = GlobalConstants.getCurrencyArray();
     private static final String typesArray[] = GlobalConstants.getTypesArray();
     private Account account;
+    private String currentLocale;
 
     public interface OnCompleteListener {
         void onCompleteLaunchFragment(Bundle args);
@@ -38,6 +41,7 @@ public class AccountsEditFragment extends Fragment {
     @SuppressLint({"ClickableViewAccessibility", "SetTextI18n"})
     public void onViewCreated(View view, Bundle bundle) {
         final DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
+        final HashMap<String, String> exchangeRates = GlobalConstants.getHashMapExchangeRates();
 
         final int userId = Overview.getUserId();
         final int accountId = getArguments().getInt("accountId");
@@ -60,6 +64,31 @@ public class AccountsEditFragment extends Fragment {
 
         final Spinner spinnerCurrency = view.findViewById(R.id.spinnerCurrency);
         spinnerCurrency.setAdapter(arrayAdapterCurrency);
+        spinnerCurrency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @SuppressLint("DefaultLocale")
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(accountId > 0) {
+                    String text = spinnerCurrency.getSelectedItem().toString();
+                    currentLocale = text.substring(text.indexOf('(') + 1, text.indexOf(')'));
+                    Log.d("current", currentLocale);
+
+                    double currency1 = Double.parseDouble(exchangeRates.get(account.getLocale()));
+                    double currency2 = Double.parseDouble(exchangeRates.get(currentLocale));
+                    double rate = currency1 / currency2;
+
+                    String balance = "" + String.format("%.2f", (account.getInitialBalance() * rate));
+                    editTextInitialBalance.setText(balance);
+                    balance = "" + String.format("%.2f", (account.getCurrentBalance() * rate));
+                    editTextCurrentBalance.setText(balance);
+                }
+            }
+
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
 
         if(accountId > 0) {
             //editing an already existing account
@@ -134,19 +163,19 @@ public class AccountsEditFragment extends Fragment {
 
                             if(currentBalance != account.getCurrentBalance()) {
                                 editFlag = true;
-                                note += getContext().getResources().getString(R.string.account_updated_1) + account.getCurrentBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + currentBalance + "\n";
+                                note += getContext().getResources().getString(R.string.account_updated_1) + " " + account.getCurrentBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + currentBalance + "\n";
                             }
                             if(initialBalance != account.getInitialBalance()) {
                                 editFlag = true;
-                                note += getContext().getResources().getString(R.string.account_change_2)+ account.getInitialBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + initialBalance + "\n";
+                                note += getContext().getResources().getString(R.string.account_change_2)+ " " + account.getInitialBalance() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + initialBalance + "\n";
                             }
                             if(!locale.equals(account.getLocale())) {
                                 editFlag = true;
-                                note += getContext().getResources().getString(R.string.account_change_3)+ account.getLocale() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + locale + "\n";
+                                note += getContext().getResources().getString(R.string.account_change_3)+ " " + account.getLocale() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + locale + "\n";
                             }
                             if(!type.equals(account.getType())) {
                                 editFlag = true;
-                                note += getContext().getResources().getString(R.string.account_changed_4)+ account.getType() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + type + "\n";
+                                note += getContext().getResources().getString(R.string.account_changed_4)+ " " + account.getType() + " " + getContext().getResources().getString(R.string.to_label_string) + " " + type + "\n";
                             }
 
                             //save changes to existing account

@@ -47,6 +47,11 @@ public class TransactionsNewFragment extends Fragment {
         final EditText editTextPayee = view.findViewById(R.id.editTextPayee);
         final EditText editTextDate = view.findViewById(R.id.editTextDate);
 
+        final Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") final String today = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        editTextDate.setText(today);
+
         final Account[] accountsList = databaseHelper.getAccountList(userId);
         final String spinnerString[] = new String[accountsList.length];
 

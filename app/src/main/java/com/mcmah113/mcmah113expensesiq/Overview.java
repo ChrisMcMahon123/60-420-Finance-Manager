@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class Overview extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -164,10 +165,6 @@ public class Overview extends AppCompatActivity implements
                 //in need of an API call, lets do it
                 Log.d("FIXER.io", "NEED TO UPDATE");
 
-                for(String string : GlobalConstants.getLocaleArray()) {
-                    Log.d("value", string);
-                }
-
                 hashMapExchangeRates = new FixerCurrencyAPI().execute(GlobalConstants.getLocaleArray()).get();
 
                 if(hashMapExchangeRates != null) {
@@ -213,6 +210,11 @@ public class Overview extends AppCompatActivity implements
                 Toast.makeText(this, getResources().getString(R.string.fixer_failed_backup) + " " + hashMapExchangeRates.get("Date"), Toast.LENGTH_LONG).show();
             }
         }
+
+        for(Map.Entry<String, String> pair: GlobalConstants.getHashMapExchangeRates().entrySet()) {
+            Log.d(pair.getKey(), pair.getValue());
+        }
+
 
         //load the users default language
         Locale LanguageLocale = new Locale(databaseHelper.getUserSettings(userId).get("language"));

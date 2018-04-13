@@ -209,8 +209,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             amount = cursor.getString(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[2]));
             date = cursor.getString(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[3]));
             default_flag = cursor.getInt(cursor.getColumnIndex(COLUMNS_EXCHANGE_RATES[4]));
+            Log.d("getDatabaseRates", locale + "|" + amount + "|" + date + "|" + default_flag);
 
             hashMapExchangeRates.put(locale, amount);
+
+            cursor.moveToNext();
         }
 
         hashMapExchangeRates.put("Date", date);
