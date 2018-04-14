@@ -18,7 +18,7 @@ import java.util.StringTokenizer;
 public class DatabaseHelper extends SQLiteOpenHelper {
     //database information
     private static final String DATABASE_NAME = "ExpenseIq.db";
-    private static final int DATABASE_VERSION = 5431;
+    private static final int DATABASE_VERSION = 10;
 
     //table names
     private static final String TABLE_USERS = "Users";

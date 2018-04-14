@@ -65,6 +65,7 @@ public class AccountsFragment extends Fragment {
 
     //creates a hash map to calculate the total amount that each currency
     //has in all accounts, then returns a 2D string array with the information
+    @SuppressLint("DefaultLocale")
     public String[][] getSummary(Account accounts[]) {
         //go through each account element,
         //if the currency is unique, add a new hash entry
@@ -97,7 +98,7 @@ public class AccountsFragment extends Fragment {
         for(Map.Entry<String, Double> pair : hashMap.entrySet()) {
             key = pair.getKey();
             summary[i][0] = key.substring(0,key.indexOf('-'));
-            summary[i][1] = key.substring(key.indexOf('-') + 1,key.length()) + pair.getValue();
+            summary[i][1] = key.substring(key.indexOf('-') + 1,key.length()) + String.format("%.2f",pair.getValue());
 
             i ++;
         }

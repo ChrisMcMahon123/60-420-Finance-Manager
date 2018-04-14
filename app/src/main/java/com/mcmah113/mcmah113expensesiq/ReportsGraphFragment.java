@@ -509,13 +509,15 @@ public class ReportsGraphFragment extends Fragment {
                     if(hashMapAmount.size() > 0) {
                         if(hashMapAmount.containsKey("Expense") && hashMapAmount.containsKey("Income")) {
                             totalAmount = Math.abs(hashMapAmount.get("Income") - hashMapAmount.get("Expense"));
-                            absTotalAmount = Math.abs(hashMapAmount.get("Income")) + Math.abs(hashMapAmount.get("Expense")) / 2;
+                            absTotalAmount = Math.abs(hashMapAmount.get("Income")) + Math.abs(hashMapAmount.get("Expense"));
                         }
                         else if(hashMapAmount.containsKey("Income")) {
                             totalAmount = hashMapAmount.get("Income");
+                            absTotalAmount = Math.abs(hashMapAmount.get("Income"));
                         }
                         else if(hashMapAmount.containsKey("Expense")) {
                             totalAmount = hashMapAmount.get("Expense") * -1;
+                            absTotalAmount = Math.abs(hashMapAmount.get("Expense"));
                         }
 
                         createPieChart(userData, hashMapAmount, absTotalAmount, totalAmount, linearLayoutLegendEntry);
