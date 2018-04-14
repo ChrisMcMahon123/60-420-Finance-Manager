@@ -372,7 +372,7 @@ public class OverviewFragment extends Fragment {
             }
 
             if(hashMapAmount.size() > 0) {
-                linearLayoutExpenseByCategoryReport.addView(createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry));
+                linearLayoutExpenseByCategoryReport.addView(createPieChart(userData, hashMapAmount, totalAmount, totalAmount, linearLayoutLegendEntry));
             }
             else {
                 linearLayoutExpenseByCategoryReport.addView(displayNoTransactionsText());
@@ -394,6 +394,9 @@ public class OverviewFragment extends Fragment {
         double totalAmount = 0.0;
 
         final ArrayList<LinearLayout> linearLayoutLegendEntry = new ArrayList<>();
+
+        //only one report
+        double absTotalAmount = 0;
 
         if(transactionList.length > 0) {
             for (Transaction transaction : transactionList) {
@@ -430,6 +433,7 @@ public class OverviewFragment extends Fragment {
             if(hashMapAmount.size() > 0) {
                 if(hashMapAmount.containsKey("Expense") && hashMapAmount.containsKey("Income")) {
                     totalAmount = Math.abs(hashMapAmount.get("Income") - hashMapAmount.get("Expense"));
+                    absTotalAmount = Math.abs(hashMapAmount.get("Income")) + Math.abs(hashMapAmount.get("Expense")) / 2;
                 }
                 else if(hashMapAmount.containsKey("Income")) {
                     totalAmount = hashMapAmount.get("Income");
@@ -438,7 +442,7 @@ public class OverviewFragment extends Fragment {
                     totalAmount = hashMapAmount.get("Expense") * -1;
                 }
 
-                linearLayoutIncomeVsExpense.addView(createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry));
+                linearLayoutIncomeVsExpense.addView(createPieChart(userData, hashMapAmount,absTotalAmount, totalAmount, linearLayoutLegendEntry));
             }
             else {
                 linearLayoutIncomeVsExpense.addView(displayNoTransactionsText());
@@ -449,7 +453,7 @@ public class OverviewFragment extends Fragment {
         }
     }
 
-    public View createPieChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, ArrayList<LinearLayout> linearLayoutLegendEntry) {
+    public View createPieChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double absTotalAmount, double totalAmount, ArrayList<LinearLayout> linearLayoutLegendEntry) {
         //get the text of the inner pie that represents the
         final PieChart pieChart = new PieChart(getContext());
 
@@ -469,7 +473,7 @@ public class OverviewFragment extends Fragment {
         final List<PieEntry> entries = new ArrayList<>();
 
         for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
-            entries.add(new PieEntry((float) (pair.getValue() / Math.abs(totalAmount)), pair.getKey()));
+            entries.add(new PieEntry((float) (pair.getValue() / absTotalAmount), pair.getKey()));
 
             view = linearLayoutLegendEntry.get(i);
             textViewLegend = view.findViewById(R.id.textViewLegend);

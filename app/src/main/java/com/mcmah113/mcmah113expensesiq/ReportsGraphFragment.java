@@ -216,7 +216,7 @@ public class ReportsGraphFragment extends Fragment {
                             }
 
                             if(hashMapAmount.size() > 0) {
-                                createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry);
+                                createPieChart(userData, hashMapAmount, totalAmount, totalAmount, linearLayoutLegendEntry);
                             }
                             else {
                                 displayNoTransactionsText();
@@ -358,7 +358,7 @@ public class ReportsGraphFragment extends Fragment {
                             }
 
                             if(hashMapAmount.size() > 0) {
-                                createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry);
+                                createPieChart(userData, hashMapAmount, totalAmount,totalAmount, linearLayoutLegendEntry);
                             }
                             else {
                                 displayNoTransactionsText();
@@ -472,6 +472,8 @@ public class ReportsGraphFragment extends Fragment {
                 break;
             case "Cash Flow":
                 //only one report
+                double absTotalAmount = 0;
+
                 if(transactionList.length > 0) {
                     for (Transaction transaction : transactionList) {
                         amount = transaction.getAmount();
@@ -507,6 +509,7 @@ public class ReportsGraphFragment extends Fragment {
                     if(hashMapAmount.size() > 0) {
                         if(hashMapAmount.containsKey("Expense") && hashMapAmount.containsKey("Income")) {
                             totalAmount = Math.abs(hashMapAmount.get("Income") - hashMapAmount.get("Expense"));
+                            absTotalAmount = Math.abs(hashMapAmount.get("Income")) + Math.abs(hashMapAmount.get("Expense")) / 2;
                         }
                         else if(hashMapAmount.containsKey("Income")) {
                             totalAmount = hashMapAmount.get("Income");
@@ -515,7 +518,7 @@ public class ReportsGraphFragment extends Fragment {
                             totalAmount = hashMapAmount.get("Expense") * -1;
                         }
 
-                        createPieChart(userData, hashMapAmount, totalAmount, linearLayoutLegendEntry);
+                        createPieChart(userData, hashMapAmount, absTotalAmount, totalAmount, linearLayoutLegendEntry);
                     }
                     else {
                         displayNoTransactionsText();
@@ -955,12 +958,11 @@ public class ReportsGraphFragment extends Fragment {
         linearLayoutGraphArea.addView(barChart);
     }
 
-    public void createPieChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double totalAmount, ArrayList<LinearLayout> linearLayoutLegendEntry) {
+    public void createPieChart(HashMap<String, String> userData, HashMap<String, Double> hashMapAmount, double absTotalAmount, double totalAmount, ArrayList<LinearLayout> linearLayoutLegendEntry) {
         //get the text of the inner pie that represents the
         final PieChart pieChart = new PieChart(getContext());
 
         @SuppressLint("DefaultLocale") String totalAmountString = userData.get("symbol") + String.format("%.2f", totalAmount);
-
         final int colorPalette[] = GlobalConstants.getColorPalette();
 
         final LinearLayout linearLayoutLegend = new LinearLayout(getContext());
@@ -975,7 +977,7 @@ public class ReportsGraphFragment extends Fragment {
         final List<PieEntry> entries = new ArrayList<>();
 
         for(Map.Entry<String, Double> pair : hashMapAmount.entrySet()) {
-            entries.add(new PieEntry((float) (pair.getValue() / Math.abs(totalAmount)), pair.getKey()));
+            entries.add(new PieEntry((float) (pair.getValue() / absTotalAmount), pair.getKey()));
 
             view = linearLayoutLegendEntry.get(i);
             textViewLegend = view.findViewById(R.id.textViewLegend);
