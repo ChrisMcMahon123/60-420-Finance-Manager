@@ -1,5 +1,10 @@
 # 60-420-Finance-Manager
-Financial manager that manages multiple accounts in multiple different currencies. Uses the Fixer.io API for real time currency exchange rates
+
+Fixer API for foreign exchange rates Fixer.io 
+
+MPAndroidChart API for drawing graphs https://github.com/PhilJay/MPAndroidChart
+
+Icons from https://www.flaticon.com/family/meticulous/yellow-shadow
 
 Screenshot 1
 
@@ -28,7 +33,3 @@ Screenshot 6
 Screenshot 7
 
 ![Screenshot 1](/screenshots/7.png?raw=true "Screenshot 7")
-
-Icons from https://www.flaticon.com/family/meticulous/yellow-shadow
-
-MPAndroidChart API for drawing graphs https://github.com/PhilJay/MPAndroidChart
