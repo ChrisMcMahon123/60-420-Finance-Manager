@@ -1,6 +1,6 @@
 # 60-420-Finance-Manager
 
-Fixer API for foreign exchange rates Fixer.io 
+Fixer API for foreign exchange rates https://fixer.io/
 
 MPAndroidChart API for drawing graphs https://github.com/PhilJay/MPAndroidChart
 
