@@ -4,4 +4,5 @@ Financial manager that manages multiple accounts in multiple different currencie
 
 
 Icons from https://www.flaticon.com/family/meticulous/yellow-shadow
+
 MPAndroidChart API for drawing graphs https://github.com/PhilJay/MPAndroidChart
